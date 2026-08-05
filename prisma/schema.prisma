@@ -1,0 +1,219 @@
+// Flock — data model
+// Multi-tenant: every domain row scopes to a Hall via hallId.
+// Roles: ADMIN (RS) -> LEADER (CGL) -> MEMBER (Student).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // Supabase pooled vs. direct connection (used by migrations)
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN // Resident Shepherd
+  LEADER // Community Group Leader
+  MEMBER // Student
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  EXCUSED
+}
+
+enum CareNoteTag {
+  PRAYER
+  FOLLOW_UP
+  POSSIBLE_IR
+}
+
+/// A hall (~70 men). The tenant boundary — no cross-hall visibility.
+model Hall {
+  id        String   @id @default(cuid())
+  name      String // e.g. "Hall 3"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users            User[]
+  groups           Group[]
+  weeks            Week[]
+  attendance       AttendanceRecord[]
+  careNotes        CareNote[]
+  resources        Resource[]
+}
+
+/// A person on the hall. `id` mirrors the Supabase auth user id.
+model User {
+  id        String   @id // = Supabase auth uid
+  email     String   @unique // must end in @liberty.edu
+  username  String
+  role      Role     @default(MEMBER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hall   Hall   @relation(fields: [hallId], references: [id])
+  hallId String
+
+  // The community group this student belongs to (MEMBER). Null for unassigned.
+  group   Group?  @relation("GroupMembers", fields: [groupId], references: [id])
+  groupId String?
+
+  // Groups this user leads (LEADER). Usually one.
+  ledGroups Group[] @relation("GroupLeader")
+
+  // Personal weekly passage notes.
+  weeklyNotes WeeklyNote[]
+
+  // Care notes: as the subject (guy) and as the author (CGL).
+  careNotesAbout   CareNote[] @relation("CareNoteStudent")
+  careNotesWritten CareNote[] @relation("CareNoteAuthor")
+
+  // Attendance records: as the subject and as the recorder (CGL).
+  attendance         AttendanceRecord[] @relation("AttendanceStudent")
+  attendanceRecorded AttendanceRecord[] @relation("AttendanceRecorder")
+
+  @@index([hallId])
+  @@index([groupId])
+}
+
+/// A community group (~7 men) led by one CGL.
+model Group {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hall   Hall   @relation(fields: [hallId], references: [id])
+  hallId String
+
+  leader   User?   @relation("GroupLeader", fields: [leaderId], references: [id])
+  leaderId String?
+
+  members    User[]             @relation("GroupMembers")
+  attendance AttendanceRecord[]
+
+  @@index([hallId])
+}
+
+/// A Wednesday: the set passage for the whole hall + the memory verse.
+model Week {
+  id          String   @id @default(cuid())
+  index       Int // 1, 2, 3 ... within a semester
+  date        DateTime // the Wednesday
+  semester    String // e.g. "Fall 2026"
+  passageRef  String // e.g. "John 15:1-11"
+  enduringUrl String? // link to Enduring Word for these verses
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  hall   Hall   @relation(fields: [hallId], references: [id])
+  hallId String
+
+  memoryVerse MemoryVerse?
+  weeklyNotes WeeklyNote[]
+  attendance  AttendanceRecord[]
+
+  @@unique([hallId, index, semester])
+  @@index([hallId])
+}
+
+/// The verse of the week to memorize. Plain reference + text — never interpreted.
+model MemoryVerse {
+  id        String   @id @default(cuid())
+  reference String // "John 15:5"
+  text      String // the verse text (human-entered, no commentary)
+  createdAt DateTime @default(now())
+
+  week   Week   @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  weekId String @unique
+}
+
+/// Private, per-person notes on the week's passage. A blank study journal.
+model WeeklyNote {
+  id        String   @id @default(cuid())
+  body      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
+
+  week   Week   @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  weekId String
+
+  @@unique([authorId, weekId])
+  @@index([weekId])
+}
+
+/// One Wednesday's attendance for one student. Recorded by their CGL.
+model AttendanceRecord {
+  id        String           @id @default(cuid())
+  status    AttendanceStatus @default(ABSENT)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  hall   Hall   @relation(fields: [hallId], references: [id])
+  hallId String
+
+  week   Week   @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  weekId String
+
+  student   User   @relation("AttendanceStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  studentId String
+
+  // Snapshot of the group at record time (groups can change via the draft).
+  group   Group?  @relation(fields: [groupId], references: [id])
+  groupId String?
+
+  recordedBy   User?   @relation("AttendanceRecorder", fields: [recordedById], references: [id])
+  recordedById String?
+
+  @@unique([weekId, studentId])
+  @@index([hallId])
+  @@index([weekId])
+  @@index([groupId])
+}
+
+/// A dated note a CGL logs on one of their guys. Accumulates all semester.
+model CareNote {
+  id           String       @id @default(cuid())
+  body         String
+  tag          CareNoteTag?
+  possibleIR   Boolean      @default(false)
+  semester     String // grouping window for spiritual summaries
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  hall   Hall   @relation(fields: [hallId], references: [id])
+  hallId String
+
+  student   User   @relation("CareNoteStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  studentId String
+
+  author   User?   @relation("CareNoteAuthor", fields: [authorId], references: [id])
+  authorId String?
+
+  @@index([hallId])
+  @@index([studentId])
+  @@index([semester])
+}
+
+/// RS-editable link the hall always needs (Enduring Word, sign-out form, portals).
+model Resource {
+  id        String   @id @default(cuid())
+  label     String
+  url       String
+  pinned    Boolean  @default(false) // pin to Home
+  sort      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hall   Hall   @relation(fields: [hallId], references: [id])
+  hallId String
+
+  @@index([hallId])
+}

@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/*
+  Flock design system — "light green & white, calm and clean."
+  Palette from the design doc. Greens for structure/accents, generous
+  white space, one warm amber + one muted red for warnings / "did not attend".
+*/
+
+@theme {
+  /* Brand greens (dark -> light) */
+  --color-flock-900: #1f2a1c; /* ink / near-black green */
+  --color-flock-800: #254c1e; /* darkest brand green */
+  --color-flock-700: #3f7a34;
+  --color-flock-600: #5aa24a; /* primary accent */
+  --color-flock-300: #a6d69a;
+  --color-flock-100: #e7f4e1; /* soft surface */
+  --color-flock-50: #f3faef; /* app background wash */
+
+  /* Status colors */
+  --color-warn: #d98c1f; /* warm amber — warnings, reminders */
+  --color-absent: #b4443a; /* muted red — "did not attend" */
+
+  /* Semantic aliases */
+  --color-background: #f3faef;
+  --color-surface: #ffffff;
+  --color-foreground: #1f2a1c;
+  --color-muted: #5b6b56;
+  --color-border: #dcebd4;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1rem;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  /* keep content clear of the fixed bottom taskbar + iOS home indicator */
+  min-height: 100dvh;
+}
+
+/* Respect PWA safe areas (notch / home indicator) */
+@supports (padding: max(0px)) {
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
