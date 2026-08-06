@@ -75,6 +75,19 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 
 ## Changelog
 
+### 8/6/2026 (RS bootstrap: Make RS + set-role script)
+- **First-RS bootstrap:** `scripts/set-role.js <email> <ADMIN|LEADER|MEMBER>` — flips a user's role
+  (clears groupId for ADMIN/LEADER). For seeding the 3 hall RSs by hand before there's an in-app RS.
+- **Co-RS in-app:** added **"Make RS"** to the People screen — an RS can appoint another person on
+  *their own hall* as ADMIN. People page now has a **Resident Shepherds** section; your own row shows
+  "You" with no demote (self-guard in UI + data layer, so a hall can't lock out its last RS). Demote
+  now handles LEADER and ADMIN; a freed leader's group is deleted if empty, else left leaderless.
+- Verified: script (usage/not-found/happy paths); Make RS on a CGL → 2 RSs, ex-CGL left group leaderless;
+  demote co-RS → back to 1 RS; self has no demote button. 0 server errors.
+- **RS onboarding recap** (how Will/Ty become RSs of their halls): each hall has a join code → they sign
+  up with their hall's code (become MEMBER) → run `set-role.js their@email ADMIN` once (first RS per hall);
+  additional co-RS via the in-app button. Everything is hallId-scoped, so each RS only sees their hall.
+
 ### 8/6/2026 (In-app role management — promote/demote)
 - RS can now **promote a student to CGL** (and demote back) in-app — no more manual DB edits.
   `src/lib/people.ts` (RS-only) + `/people` page, linked from RS More as **"People."**
