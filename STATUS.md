@@ -75,6 +75,17 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 
 ## Changelog
 
+### 8/6/2026 (Real hall codes + reset tool)
+- Set real join codes: **Hall 1 = LACASA (Paul), Hall 2 = OHANA (Will), Hall 3 = OKLY (Ty)**
+  (in `prisma/seed.ts` + applied). Codes case-insensitive at signup, stored uppercase, rotatable.
+  Demo data (71 users) lives on Hall 2 / OHANA; Halls 1 & 3 are empty for real signups.
+- **`scripts/reset-hall.js <name|joinCode> [--confirm]`** — wipes one hall's data (users, groups,
+  attendance, care notes, verses, 1-on-1s, weeks, notes, resources) but KEEPS the hall + code. Dry-run
+  by default; `--confirm` to delete. Verified via dry-run on OHANA (sees all demo data, deletes nothing).
+  Use after deploy+demo: `node scripts/reset-hall.js OHANA --confirm`. NB: doesn't delete Supabase Auth
+  accounts — remove real test logins in Supabase → Authentication → Users too.
+  Also NB: dev and prod share one Supabase DB, so running this locally clears the deployed data.
+
 ### 8/6/2026 (RS bootstrap: Make RS + set-role script)
 - **First-RS bootstrap:** `scripts/set-role.js <email> <ADMIN|LEADER|MEMBER>` — flips a user's role
   (clears groupId for ADMIN/LEADER). For seeding the 3 hall RSs by hand before there's an in-app RS.
