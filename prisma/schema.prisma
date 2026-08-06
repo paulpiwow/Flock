@@ -52,6 +52,7 @@ model Hall {
   careNotes        CareNote[]
   resources        Resource[]
   memoryVerses     MemoryVerse[]
+  oneOnOnes        OneOnOne[]
 }
 
 /// A person on the hall. `id` mirrors the Supabase auth user id.
@@ -90,6 +91,10 @@ model User {
 
   // Memory verses this user assigned (RS -> CGLs, or CGL -> their group).
   versesAuthored MemoryVerse[] @relation("VerseAuthor")
+
+  // 1-on-1 meetings: as the guy met with, and as the CGL who logged it.
+  oneOnOnesAbout OneOnOne[] @relation("OneOnOneStudent")
+  oneOnOnesLed   OneOnOne[] @relation("OneOnOneLeader")
 
   @@index([hallId])
   @@index([groupId])
@@ -239,6 +244,26 @@ model CareNote {
   @@index([hallId])
   @@index([studentId])
   @@index([semester])
+}
+
+/// A logged 1-on-1 meeting between a CGL and one of their guys. A light tracker
+/// (not a rigid calendar) — "have I met with each guy this cycle?"
+model OneOnOne {
+  id        String   @id @default(cuid())
+  metAt     DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  hall   Hall   @relation(fields: [hallId], references: [id])
+  hallId String
+
+  student   User   @relation("OneOnOneStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  studentId String
+
+  leader   User?   @relation("OneOnOneLeader", fields: [leaderId], references: [id])
+  leaderId String?
+
+  @@index([hallId])
+  @@index([studentId])
 }
 
 /// RS-editable link the hall always needs (Enduring Word, sign-out form, portals).

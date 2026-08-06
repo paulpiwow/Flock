@@ -75,6 +75,19 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 
 ## Changelog
 
+### 8/6/2026 (1-on-1 tracker; retire LEAD placeholder)
+- The `1-on-1s` and `LEAD Group` tiles were placeholders both pointing at `/hub`. Built **1-on-1s** for
+  real and **removed the LEAD tile**.
+- `OneOnOne` model (metAt, hallId, studentId, leaderId). `src/lib/oneonone.ts`: CGL's roster with
+  last-met + nudge (>21 days / never); `logOneOnOne` — optional note is also saved as a **care note**
+  (tag FOLLOW_UP, prefixed "1-on-1:"), so it flows to the care timeline + RS feed.
+- `/one-on-ones` (LEADER only): roster sorted nudge-first, inline "log a meeting" form (date + note).
+  1-on-1s tile now points here. Hub gained a real **1-on-1s card** ("N to catch up with"); footer now
+  only says LEAD/Connect Class coming soon.
+- Verified: logged a 1-on-1 with a note → nudge count 7→6, guy moved to "Last met today", note appeared
+  in his care timeline as Follow-up, Hub card + care-gap count updated. LEAD tile gone. Current build 0 errors.
+- Deferred: LEAD Group + Connect Class tracking (need their own model/spec).
+
 ### 8/6/2026 (Two-tier memory verses)
 - Reworked memory verses from one hall-wide "verse of the week" into **two tiers** (`src/lib/verses.ts`):
   `MemoryVerse.audience` = **LEADERS** (RS → the hall's CGLs) or **GROUP** (a CGL → their group's members).

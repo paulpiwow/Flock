@@ -47,8 +47,7 @@ export const MORE_TILES: Record<Role, FeatureTile[]> = {
   LEADER: [
     { label: "Hub", href: "/hub", icon: "list-checks", desc: "Your checklist" },
     { label: "CGL Picker", href: "/picker", icon: "disc", desc: "Spin the wheel" },
-    { label: "1-on-1s", href: "/hub", icon: "user-round", desc: "Track meetings" },
-    { label: "LEAD Group", href: "/hub", icon: "calendar", desc: "Schedule & halves" },
+    { label: "1-on-1s", href: "/one-on-ones", icon: "user-round", desc: "Track meetings" },
     { label: "Resources", href: "/resources", icon: "link", desc: "Handy links" },
   ],
   MEMBER: [],

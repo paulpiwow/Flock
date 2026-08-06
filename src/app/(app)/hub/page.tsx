@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Check, ChevronRight, ClipboardList, HeartHandshake } from "lucide-react";
+import {
+  Check,
+  ChevronRight,
+  ClipboardList,
+  HeartHandshake,
+  UserRound,
+} from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
 import { getCglHub, getRsHubOverview } from "@/lib/hub";
+import { getMyOneOnOnes } from "@/lib/oneonone";
 import { cn } from "@/lib/cn";
 
 export default async function HubPage() {
@@ -52,7 +59,11 @@ export default async function HubPage() {
   }
 
   // --- CGL: my checklist ---
-  const { group, week, submitted, needNote } = await getCglHub(user);
+  const [{ group, week, submitted, needNote }, oneOnOnes] = await Promise.all([
+    getCglHub(user),
+    getMyOneOnOnes(user),
+  ]);
+  const owed1on1 = oneOnOnes.guys.filter((g) => g.needsNudge).length;
 
   if (!group) {
     return (
@@ -143,8 +154,36 @@ export default async function HubPage() {
         )}
       </div>
 
+      {/* 1-on-1s owed */}
+      <Link
+        href="/one-on-ones"
+        className="flex items-center justify-between rounded-card border border-border bg-surface p-4 shadow-sm active:bg-flock-50"
+      >
+        <div className="flex items-center gap-3">
+          <span
+            className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-xl",
+              owed1on1 === 0
+                ? "bg-flock-100 text-flock-700"
+                : "bg-warn/10 text-warn",
+            )}
+          >
+            <UserRound className="h-5 w-5" aria-hidden />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-foreground">1-on-1s</p>
+            <p className="text-xs text-muted">
+              {owed1on1 === 0
+                ? "Everyone met with recently ✓"
+                : `${owed1on1} guy${owed1on1 === 1 ? "" : "s"} to catch up with`}
+            </p>
+          </div>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted" aria-hidden />
+      </Link>
+
       <p className="text-center text-[11px] text-muted">
-        1-on-1s, LEAD group & Connect Class tracking coming soon.
+        LEAD group & Connect Class tracking coming soon.
       </p>
     </section>
   );
