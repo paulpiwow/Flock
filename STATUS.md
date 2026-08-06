@@ -61,7 +61,13 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
     + rule-based "needs attention" (no PRESENT in last 3 weeks). No AI. _(verified 8/6)_
   - [x] **CGL Hub** (`/hub`): CGL checklist (attendance submitted? which guys need a care note?) +
     RS cross-CGL "who's on track" overview. _(verified 8/6)_ 1-on-1/LEAD/Connect Class tracking deferred.
-- [ ] **Phase 6 — Notifications + PWA polish:** web push opt-in, install flow, offline.
+- [~] **Phase 6 — Notifications + PWA polish:**
+  - [x] **PWA install:** PNG icons (192/512 maskable + apple-touch 180), service worker (`public/sw.js`:
+    network-first navigations, SWR assets, offline fallback), `/offline` page, prod-only SW registration,
+    `InstallPrompt` (Android button + iOS Add-to-Home hint, dismissible). Verified via prod build:
+    SW active, manifest valid, offline precached, 0 errors. _(8/6)_
+  - [ ] Web push notifications (memorize verse / submit attendance / RS roundup).
+  - [ ] Deploy to Vercel (see Go-live checklist).
 
 ## Open questions (to settle with Paul/Will/Ty)
 - Hall binding: **join code** vs. RS-approves-against-roster (or both)? Leaning join code for v1.
@@ -98,6 +104,18 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 - [ ] Real students sign up with their hall's code. Done.
 
 ## Changelog
+
+### 8/6/2026 (PWA install experience)
+- Generated PNG icons from the sheep mark (`scripts/gen-icons.js` via sharp): icon-192/512 (maskable-safe)
+  + apple-touch-icon 180. Manifest already referenced 192/512.
+- `public/sw.js` service worker (network-first navigations → `/offline` fallback; SWR for static assets;
+  never caches app data). `/offline` public page. `ServiceWorkerRegister` (production only).
+- `InstallPrompt` banner on Home: Chrome/Android install button (beforeinstallprompt) + iOS Safari
+  "Share → Add to Home Screen" hint; hides if already installed; dismissible (localStorage).
+- **Bug fixed:** proxy matcher wasn't excluding `/sw.js` → it 307-redirected (would break SW registration).
+  Added `sw.js` to the exclusion list. Now serves 200 application/javascript.
+- Verified via `npm run build && npm start`: SW registered + active (scope /), manifest valid (standalone,
+  192/512 icons), `/offline` precached, all PWA assets 200, fresh-tab console 0 errors.
 
 ### 8/6/2026 (Real hall codes + reset tool)
 - Set real join codes: **Hall 1 = LACASA (Paul), Hall 2 = OHANA (Will), Hall 3 = OKLY (Ty)**

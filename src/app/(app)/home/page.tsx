@@ -6,6 +6,7 @@ import { getPinnedResources } from "@/lib/resources";
 import { getSelfAttendance } from "@/lib/attendance";
 import { isCheckInOpen } from "@/lib/checkin";
 import { FeatureGrid } from "@/components/FeatureGrid";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { SelfCheckInCard } from "@/components/SelfCheckInCard";
 import { SheepMark } from "@/components/SheepMark";
 import { SignOutButton } from "@/components/SignOutButton";
@@ -70,6 +71,9 @@ export default async function HomePage() {
           }
         />
       )}
+
+      {/* Install banner (shows only when installable / iOS Safari) */}
+      <InstallPrompt />
 
       {/* Launcher grid */}
       <FeatureGrid tiles={HOME_TILES[role]} />
