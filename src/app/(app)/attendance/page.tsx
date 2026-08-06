@@ -7,6 +7,7 @@ import {
   getSelfAttendance,
 } from "@/lib/attendance";
 import { SelfCheckInCard } from "@/components/SelfCheckInCard";
+import { isCheckInOpen } from "@/lib/checkin";
 import { cn } from "@/lib/cn";
 
 export default async function AttendancePage({
@@ -30,6 +31,8 @@ export default async function AttendancePage({
             passageRef={week.passageRef}
             groupName={group?.name ?? null}
             leaderName={group?.leader?.username ?? null}
+            hasGroup={!!user.groupId}
+            open={isCheckInOpen()}
             selfReported={!!record?.selfReportedAt}
             confirmedStatus={record?.confirmedAt ? record.status : null}
           />

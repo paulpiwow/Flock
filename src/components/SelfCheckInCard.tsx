@@ -1,8 +1,9 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { Check } from "lucide-react";
+import { Check, Clock } from "lucide-react";
 import { selfCheckInAction } from "@/lib/actions/attendance";
+import { CHECK_IN_OPENS_TEXT } from "@/lib/checkin";
 
 function CheckInButton() {
   const { pending } = useFormStatus();
@@ -21,6 +22,8 @@ type Props = {
   passageRef: string;
   groupName: string | null;
   leaderName: string | null;
+  hasGroup: boolean;
+  open: boolean;
   selfReported: boolean;
   confirmedStatus: "PRESENT" | "ABSENT" | "EXCUSED" | null;
 };
@@ -29,6 +32,8 @@ export function SelfCheckInCard({
   passageRef,
   groupName,
   leaderName,
+  hasGroup,
+  open,
   selfReported,
   confirmedStatus,
 }: Props) {
@@ -59,10 +64,19 @@ export function SelfCheckInCard({
             <Check className="h-4 w-4" aria-hidden /> You&apos;re checked in —
             your CGL will confirm.
           </div>
-        ) : (
+        ) : !hasGroup ? (
+          <div className="rounded-xl bg-flock-50 px-4 py-3 text-sm font-medium text-muted">
+            You&apos;re not in a group yet — your RS will place you into a
+            Community Group.
+          </div>
+        ) : open ? (
           <form action={selfCheckInAction}>
             <CheckInButton />
           </form>
+        ) : (
+          <div className="flex items-center gap-2 rounded-xl bg-flock-50 px-4 py-3 text-sm font-medium text-muted">
+            <Clock className="h-4 w-4" aria-hidden /> {CHECK_IN_OPENS_TEXT}
+          </div>
         )}
       </div>
     </div>

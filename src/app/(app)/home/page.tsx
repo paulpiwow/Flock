@@ -4,6 +4,7 @@ import { HOME_TILES } from "@/lib/features";
 import { ROLE_LABEL, type Role } from "@/lib/roles";
 import { getPinnedResources } from "@/lib/resources";
 import { getSelfAttendance } from "@/lib/attendance";
+import { isCheckInOpen } from "@/lib/checkin";
 import { FeatureGrid } from "@/components/FeatureGrid";
 import { SelfCheckInCard } from "@/components/SelfCheckInCard";
 import { SheepMark } from "@/components/SheepMark";
@@ -15,9 +16,17 @@ export default async function HomePage() {
   const initial = user.username.charAt(0).toUpperCase();
   const pinned = await getPinnedResources(user.hallId);
 
-  // Students self-check-in from Home — the weekly moment, front and center.
+  // Students self-check-in from Home — but only during the Wednesday-night
+  // window (or if they've already been marked this week).
   const selfAttendance =
     role === "MEMBER" ? await getSelfAttendance(user) : null;
+  const checkInOpen = isCheckInOpen();
+  const alreadyMarked = !!(
+    selfAttendance?.record?.selfReportedAt ||
+    selfAttendance?.record?.confirmedAt
+  );
+  const showCheckIn =
+    !!selfAttendance?.week && (checkInOpen || alreadyMarked);
 
   return (
     <section className="space-y-6">
@@ -45,12 +54,14 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* Student: this week's check-in, up top */}
-      {selfAttendance?.week && (
+      {/* Student: this week's check-in, up top (Wednesday-night window only) */}
+      {showCheckIn && selfAttendance?.week && (
         <SelfCheckInCard
           passageRef={selfAttendance.week.passageRef}
           groupName={selfAttendance.group?.name ?? null}
           leaderName={selfAttendance.group?.leader?.username ?? null}
+          hasGroup={!!user.groupId}
+          open={checkInOpen}
           selfReported={!!selfAttendance.record?.selfReportedAt}
           confirmedStatus={
             selfAttendance.record?.confirmedAt

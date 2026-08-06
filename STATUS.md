@@ -80,6 +80,11 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
   route protection verified intact.
 - **Bug fix:** students had no way to reach self-check-in (not in their 4-item taskbar). Added the
   `SelfCheckInCard` to the **student Home**, up top ("This Wednesday → I'm here"). Verified working.
+- **Scheduled check-in window** (`src/lib/checkin.ts`): student check-in only opens **Wednesdays
+  10pm–midnight Eastern** (computed in ET so it's correct on a UTC server). Outside the window the card
+  is hidden on Home (unless already checked in). Unassigned students see "you're not in a group yet"
+  instead of a dead button. Dev override: set `CHECKIN_ALWAYS_OPEN=true` in `.env` to test the open
+  state off-schedule. Verified: ET window logic (6 mock cases), closed=hidden, open=button, unassigned=message.
 
 ### 8/5/2026
 - Read design doc; locked v1 decisions above.
