@@ -9,20 +9,17 @@ import { getCurrentWeek } from "@/lib/attendance";
  * and links out to Enduring Word. RS-only helpers set the week's passage/verse.
  */
 
-/** A week (default: current) + this user's private note + the memory verse. */
+/** A week (default: current) + this user's private note. */
 export async function getWeekContext(user: ActiveUser, weekId?: string) {
   const week = weekId
     ? await prisma.week.findFirst({ where: { id: weekId, hallId: user.hallId } })
     : await getCurrentWeek(user.hallId);
   if (!week) return null;
 
-  const [note, verse] = await Promise.all([
-    prisma.weeklyNote.findUnique({
-      where: { authorId_weekId: { authorId: user.id, weekId: week.id } },
-    }),
-    prisma.memoryVerse.findUnique({ where: { weekId: week.id } }),
-  ]);
-  return { week, note, verse };
+  const note = await prisma.weeklyNote.findUnique({
+    where: { authorId_weekId: { authorId: user.id, weekId: week.id } },
+  });
+  return { week, note };
 }
 
 /** All weeks on the hall (for the archive), newest first. */
@@ -70,27 +67,6 @@ export async function setWeekPassage(
   return prisma.week.updateMany({
     where: { id: weekId, hallId: user.hallId },
     data: { passageRef, enduringUrl },
-  });
-}
-
-/** RS sets/updates the memory verse for a week (public-domain text only). */
-export async function setMemoryVerse(
-  user: ActiveUser,
-  weekId: string,
-  reference: string,
-  text: string,
-) {
-  assertAdmin(user);
-  const week = await prisma.week.findFirst({
-    where: { id: weekId, hallId: user.hallId },
-    select: { id: true },
-  });
-  if (!week) throw new Error("Week not found on this hall.");
-
-  return prisma.memoryVerse.upsert({
-    where: { weekId },
-    create: { weekId, reference, text },
-    update: { reference, text },
   });
 }
 

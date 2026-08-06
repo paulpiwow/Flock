@@ -3,12 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireActiveUser } from "@/lib/auth";
-import {
-  upsertWeeklyNote,
-  setWeekPassage,
-  setMemoryVerse,
-  createWeek,
-} from "@/lib/notes";
+import { upsertWeeklyNote, setWeekPassage, createWeek } from "@/lib/notes";
 
 export type SaveState = { ok?: boolean; error?: string };
 
@@ -66,41 +61,6 @@ export async function setPassageAction(
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Could not save." };
   }
-  revalidatePath("/notes");
-  return { ok: true };
-}
-
-const verseSchema = z.object({
-  weekId: z.string().min(1),
-  reference: z.string().trim().min(1, "Enter a reference."),
-  text: z.string().trim().min(1, "Enter the verse text."),
-});
-
-/** RS: set/update the memory verse (public-domain text only). */
-export async function setVerseAction(
-  _prev: SaveState,
-  formData: FormData,
-): Promise<SaveState> {
-  const user = await requireActiveUser();
-  const parsed = verseSchema.safeParse({
-    weekId: formData.get("weekId"),
-    reference: formData.get("reference"),
-    text: formData.get("text"),
-  });
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
-  }
-  try {
-    await setMemoryVerse(
-      user,
-      parsed.data.weekId,
-      parsed.data.reference,
-      parsed.data.text,
-    );
-  } catch (e) {
-    return { error: e instanceof Error ? e.message : "Could not save." };
-  }
-  revalidatePath("/verse");
   revalidatePath("/notes");
   return { ok: true };
 }

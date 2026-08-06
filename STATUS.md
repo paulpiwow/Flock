@@ -75,6 +75,17 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 
 ## Changelog
 
+### 8/6/2026 (Two-tier memory verses)
+- Reworked memory verses from one hall-wide "verse of the week" into **two tiers** (`src/lib/verses.ts`):
+  `MemoryVerse.audience` = **LEADERS** (RS → the hall's CGLs) or **GROUP** (a CGL → their group's members).
+  Decoupled from `Week`; added `hallId`/`groupId`/`authorId`. Each tier is a list (add/delete).
+- `/verse` is now role-aware: **student** sees their group's verses (read-only); **CGL** sees the RS's
+  leader verses (to memorize) + manages their own group's verses; **RS** manages the leader verses.
+  Permissions enforced in the data layer (`requireGroupManage`; a CGL can't touch another group's verses).
+- Removed the old week-tied verse (`setMemoryVerse`/`setVerseAction`/`RsVerseForm`).
+- Verified all three roles end-to-end (RS set Joshua 1:9 for CGLs → CGL saw it + set Colossians 3:2 for
+  Group 1 → student1 saw only Colossians 3:2). Fresh build clean after `.next` cache clear (0 errors).
+
 ### 8/6/2026 (fixes during UI testing)
 - Migrated `src/middleware.ts` → `src/proxy.ts` (Next 16 convention) to clear the deprecation warning;
   route protection verified intact.

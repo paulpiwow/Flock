@@ -1,47 +1,101 @@
-import { Sparkles } from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
-import { getWeekContext } from "@/lib/notes";
-import { RsVerseForm } from "@/components/RsVerseForm";
+import {
+  getLeaderVerses,
+  getGroupVerses,
+  getStudentVerses,
+  getMyLedGroup,
+} from "@/lib/verses";
+import {
+  addLeaderVerseAction,
+  addGroupVerseAction,
+} from "@/lib/actions/verses";
+import { VerseList } from "@/components/VerseList";
+import { VerseManager } from "@/components/VerseManager";
 
 export default async function VersePage() {
   const user = await requireActiveUser();
-  const ctx = await getWeekContext(user);
-  const verse = ctx?.verse ?? null;
+
+  // --- Student: the verses their CGL set for the group ---
+  if (user.role === "MEMBER") {
+    const verses = await getStudentVerses(user);
+    return (
+      <section className="space-y-4">
+        <div>
+          <h1 className="text-xl font-bold text-flock-800">Memory Verses</h1>
+          <p className="text-sm text-muted">From your CGL — memorize these.</p>
+        </div>
+        <VerseList
+          verses={verses}
+          emptyText={
+            user.groupId
+              ? "Your CGL hasn't set any verses yet."
+              : "You're not in a group yet — your RS will place you."
+          }
+        />
+      </section>
+    );
+  }
+
+  // --- RS: manage the verses for the hall's CGLs ---
+  if (user.role === "ADMIN") {
+    const verses = await getLeaderVerses(user);
+    return (
+      <section className="space-y-4">
+        <div>
+          <h1 className="text-xl font-bold text-flock-800">Memory Verses</h1>
+          <p className="text-sm text-muted">
+            Set the verses for your CGLs to memorize.
+          </p>
+        </div>
+        <VerseManager
+          verses={verses}
+          addAction={addLeaderVerseAction}
+          emptyText="No verses for your CGLs yet."
+        />
+      </section>
+    );
+  }
+
+  // --- CGL: memorize the RS's verses + set their group's verses ---
+  const led = await getMyLedGroup(user);
+  const [leaderVerses, groupVerses] = await Promise.all([
+    getLeaderVerses(user),
+    led ? getGroupVerses(user, led.id) : Promise.resolve([]),
+  ]);
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-flock-800">Memory Verse</h1>
-        {ctx && (
+        <h1 className="text-xl font-bold text-flock-800">Memory Verses</h1>
+      </div>
+
+      <div>
+        <h2 className="mb-2 text-sm font-semibold text-foreground">
+          For you to memorize
+        </h2>
+        <VerseList
+          verses={leaderVerses}
+          emptyText="Your RS hasn't set any verses yet."
+        />
+      </div>
+
+      <div>
+        <h2 className="mb-2 text-sm font-semibold text-foreground">
+          {led ? `${led.name}'s verses` : "Your group's verses"}
+        </h2>
+        {led ? (
+          <VerseManager
+            verses={groupVerses}
+            addAction={addGroupVerseAction}
+            groupId={led.id}
+            emptyText="Set a verse for your guys to memorize."
+          />
+        ) : (
           <p className="text-sm text-muted">
-            Week {ctx.week.index} · {ctx.week.semester}
+            You&apos;re not leading a group yet.
           </p>
         )}
       </div>
-
-      {verse ? (
-        <div className="rounded-card border border-border bg-surface p-6 text-center shadow-sm">
-          <Sparkles className="mx-auto h-6 w-6 text-flock-600" aria-hidden />
-          <p className="mt-3 text-base leading-relaxed text-foreground">
-            &ldquo;{verse.text}&rdquo;
-          </p>
-          <p className="mt-3 text-sm font-semibold text-flock-700">
-            {verse.reference}
-          </p>
-        </div>
-      ) : (
-        <p className="rounded-card border border-dashed border-border bg-flock-50 px-4 py-6 text-center text-sm text-muted">
-          No memory verse set for this week yet.
-        </p>
-      )}
-
-      {user.role === "ADMIN" && ctx && (
-        <RsVerseForm
-          weekId={ctx.week.id}
-          reference={verse?.reference ?? ""}
-          text={verse?.text ?? ""}
-        />
-      )}
     </section>
   );
 }

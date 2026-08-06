@@ -31,6 +31,11 @@ enum CareNoteTag {
   POSSIBLE_IR
 }
 
+enum VerseAudience {
+  LEADERS // RS -> the hall's CGLs
+  GROUP // CGL -> their group's members
+}
+
 /// A hall (~70 men). The tenant boundary — no cross-hall visibility.
 model Hall {
   id        String   @id @default(cuid())
@@ -46,6 +51,7 @@ model Hall {
   attendance       AttendanceRecord[]
   careNotes        CareNote[]
   resources        Resource[]
+  memoryVerses     MemoryVerse[]
 }
 
 /// A person on the hall. `id` mirrors the Supabase auth user id.
@@ -82,6 +88,9 @@ model User {
   attendanceRecorded  AttendanceRecord[] @relation("AttendanceRecorder")
   attendanceConfirmed AttendanceRecord[] @relation("AttendanceConfirmer")
 
+  // Memory verses this user assigned (RS -> CGLs, or CGL -> their group).
+  versesAuthored MemoryVerse[] @relation("VerseAuthor")
+
   @@index([hallId])
   @@index([groupId])
 }
@@ -99,13 +108,14 @@ model Group {
   leader   User?   @relation("GroupLeader", fields: [leaderId], references: [id])
   leaderId String?
 
-  members    User[]             @relation("GroupMembers")
-  attendance AttendanceRecord[]
+  members      User[]             @relation("GroupMembers")
+  attendance   AttendanceRecord[]
+  memoryVerses MemoryVerse[]
 
   @@index([hallId])
 }
 
-/// A Wednesday: the set passage for the whole hall + the memory verse.
+/// A Wednesday: the set study passage for the whole hall.
 model Week {
   id          String   @id @default(cuid())
   index       Int // 1, 2, 3 ... within a semester
@@ -119,7 +129,6 @@ model Week {
   hall   Hall   @relation(fields: [hallId], references: [id])
   hallId String
 
-  memoryVerse MemoryVerse?
   weeklyNotes WeeklyNote[]
   attendance  AttendanceRecord[]
 
@@ -127,15 +136,31 @@ model Week {
   @@index([hallId])
 }
 
-/// The verse of the week to memorize. Plain reference + text — never interpreted.
+/// A verse to memorize. Two tiers:
+///   LEADERS — the RS assigns it to the hall's CGLs.
+///   GROUP   — a CGL assigns it to their own group's members.
+/// Plain reference + text — never interpreted.
 model MemoryVerse {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   reference String // "John 15:5"
   text      String // the verse text (human-entered, no commentary)
-  createdAt DateTime @default(now())
+  audience  VerseAudience
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  week   Week   @relation(fields: [weekId], references: [id], onDelete: Cascade)
-  weekId String @unique
+  hall   Hall   @relation(fields: [hallId], references: [id])
+  hallId String
+
+  // Set only for GROUP-audience verses (which group they're for).
+  group   Group?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId String?
+
+  author   User?   @relation("VerseAuthor", fields: [authorId], references: [id])
+  authorId String?
+
+  @@index([hallId])
+  @@index([groupId])
+  @@index([audience])
 }
 
 /// Private, per-person notes on the week's passage. A blank study journal.
