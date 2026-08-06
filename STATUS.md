@@ -73,6 +73,30 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 - Exact taskbar icon set per role.
 - Memory-verse translation: WEB or KJV (both public domain) — pick default.
 
+## Go-live checklist
+
+Switching from testing → real is Supabase settings + data cleanup — **no code change / redeploy needed**
+(the app already handles confirm-email on OR off). Dev and prod share one Supabase DB.
+
+**Phase A — Deploy for Will/Ty testing (Confirm email OFF)**
+- [ ] Deploy to Vercel: connect the GitHub repo.
+- [ ] Set Vercel env vars: `DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_SUPABASE_URL`,
+      `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APP_URL` (= the Vercel domain).
+- [ ] Supabase → Auth → URL config: set **Site URL + Redirect URLs** to the Vercel domain
+      (else confirmation links later point at localhost).
+- [ ] Confirm email = **OFF** (already set).
+- [ ] (Optional) PWA install polish (Phase 6) so it adds to home screen nicely.
+- [ ] Will & Ty log in on their phones with the fake accounts and explore Hall 2 (OHANA) demo data.
+
+**Phase B — Switch to real (Confirm email ON)**
+- [ ] Set up **Resend** custom SMTP in Supabase (Settings → Auth → SMTP).
+- [ ] Delete fake test logins: Supabase → Auth → Users (`paul.test`, `newguy`, `student1`, `test2`, `cgl`).
+- [ ] Clear Hall 2 demo data: `node scripts/reset-hall.js OHANA --confirm`.
+- [ ] Turn **Confirm email ON**.
+- [ ] Bootstrap RSs: each signs up with their hall code (Paul LACASA / Will OHANA / Ty OKLY), then
+      `node scripts/set-role.js <email> ADMIN` once per hall.
+- [ ] Real students sign up with their hall's code. Done.
+
 ## Changelog
 
 ### 8/6/2026 (Real hall codes + reset tool)
