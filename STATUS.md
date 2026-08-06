@@ -47,7 +47,9 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 - [x] **Phase 2 — Attendance (hybrid):** student self-check-in → CGL roster pre-fills → CGL confirms
   (official record) → RS all-hall + per-group, absentees on top, alphabetized by last name. Built on a
   central hall-scoped data layer (`src/lib/attendance.ts`). _(verified all 3 roles 8/6)_
-- [ ] **Phase 3 — Care Notes & IRs:** notes timeline, RS notify, possible-IR flag, Beacon link.
+- [x] **Phase 3 — Care Notes & IRs:** CGL logs dated notes per guy (tag + possible-IR flag) → RS
+  activity feed (possible-IR highlighted) + admin-only Beacon link + browse all students. Access
+  enforced in the data layer: CGL=own group, RS=hall, student=blocked (404). _(verified all roles 8/6)_
 - [ ] **Phase 4 — Weekly Notes + Resources:** per-week passage, private notes, Enduring Word, RS-editable resources.
 - [ ] **Phase 5 — Trends / Group Maker / CGL Picker / Hub:** admin charts, snake draft, spin-the-wheel, CGL checklist.
 - [ ] **Phase 6 — Notifications + PWA polish:** web push opt-in, install flow, offline.
@@ -94,6 +96,16 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 - Verified full loop in browser: student "I'm here" → CGL sees "self-checked in" pre-fill → confirm
   (4/7) → RS all-hall shows 4 attended / 51 absent, per-group filter = 4/3. No console errors.
 - Note: demo seed names repeat last-name-first (Adams×N, then Baker…) — cosmetic seed artifact only.
+
+### 8/6/2026 (Phase 3 — Care Notes & IRs)
+- Built `src/lib/care.ts` with a `requireStudentAccess` gate (CGL→own group, RS→hall, student→never)
+  that every read/write passes through; notes carry tag + `possibleIR` + semester.
+- Surfaces: CGL guys-list + student timeline + add-note form; RS activity feed (possible-IR sorted
+  first) + Beacon link + all-students browse. Unauthorized student access returns 404 (no leak).
+- Verified: CGL added a possible-IR note → appears in RS feed highlighted; CGL blocked from Group 2
+  student (404); student blocked from own notes (404). No console errors.
+- Deferred: real PWA push + read/unread tracking on the RS feed (Phase 6); in-app spiritual-summary
+  draft space (open question — export vs. in-app).
 
 ### 7/16/2026
 - README.md, STATUS.md
