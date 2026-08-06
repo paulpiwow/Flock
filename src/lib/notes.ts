@@ -1,0 +1,118 @@
+import "server-only";
+import { prisma } from "@/lib/prisma";
+import type { ActiveUser } from "@/lib/auth";
+import { getCurrentWeek } from "@/lib/attendance";
+
+/**
+ * Weekly Notes data layer. Personal notes are private to each person (a study
+ * journal). Flock never interprets the passage — it just stores a blank page
+ * and links out to Enduring Word. RS-only helpers set the week's passage/verse.
+ */
+
+/** A week (default: current) + this user's private note + the memory verse. */
+export async function getWeekContext(user: ActiveUser, weekId?: string) {
+  const week = weekId
+    ? await prisma.week.findFirst({ where: { id: weekId, hallId: user.hallId } })
+    : await getCurrentWeek(user.hallId);
+  if (!week) return null;
+
+  const [note, verse] = await Promise.all([
+    prisma.weeklyNote.findUnique({
+      where: { authorId_weekId: { authorId: user.id, weekId: week.id } },
+    }),
+    prisma.memoryVerse.findUnique({ where: { weekId: week.id } }),
+  ]);
+  return { week, note, verse };
+}
+
+/** All weeks on the hall (for the archive), newest first. */
+export async function getArchiveWeeks(user: ActiveUser) {
+  return prisma.week.findMany({
+    where: { hallId: user.hallId },
+    orderBy: [{ date: "desc" }, { index: "desc" }],
+    select: { id: true, index: true, passageRef: true, date: true, semester: true },
+  });
+}
+
+/** Save (create/update) the user's private note for a week. */
+export async function upsertWeeklyNote(
+  user: ActiveUser,
+  weekId: string,
+  body: string,
+) {
+  const week = await prisma.week.findFirst({
+    where: { id: weekId, hallId: user.hallId },
+    select: { id: true },
+  });
+  if (!week) throw new Error("Week not found on this hall.");
+
+  return prisma.weeklyNote.upsert({
+    where: { authorId_weekId: { authorId: user.id, weekId } },
+    create: { authorId: user.id, weekId, body },
+    update: { body },
+  });
+}
+
+/* ---------- RS-only setup ---------- */
+
+function assertAdmin(user: ActiveUser) {
+  if (user.role !== "ADMIN") throw new Error("Admin only.");
+}
+
+/** RS sets the passage + Enduring Word link for a week. */
+export async function setWeekPassage(
+  user: ActiveUser,
+  weekId: string,
+  passageRef: string,
+  enduringUrl: string | null,
+) {
+  assertAdmin(user);
+  return prisma.week.updateMany({
+    where: { id: weekId, hallId: user.hallId },
+    data: { passageRef, enduringUrl },
+  });
+}
+
+/** RS sets/updates the memory verse for a week (public-domain text only). */
+export async function setMemoryVerse(
+  user: ActiveUser,
+  weekId: string,
+  reference: string,
+  text: string,
+) {
+  assertAdmin(user);
+  const week = await prisma.week.findFirst({
+    where: { id: weekId, hallId: user.hallId },
+    select: { id: true },
+  });
+  if (!week) throw new Error("Week not found on this hall.");
+
+  return prisma.memoryVerse.upsert({
+    where: { weekId },
+    create: { weekId, reference, text },
+    update: { reference, text },
+  });
+}
+
+/** RS starts a new week; becomes the current week for the whole hall. */
+export async function createWeek(
+  user: ActiveUser,
+  input: { passageRef: string; enduringUrl: string | null; date: Date },
+) {
+  assertAdmin(user);
+  const last = await prisma.week.findFirst({
+    where: { hallId: user.hallId },
+    orderBy: { index: "desc" },
+    select: { index: true, semester: true },
+  });
+  return prisma.week.create({
+    data: {
+      hallId: user.hallId,
+      index: (last?.index ?? 0) + 1,
+      semester: last?.semester ?? "Fall 2026",
+      date: input.date,
+      passageRef: input.passageRef,
+      enduringUrl: input.enduringUrl,
+    },
+  });
+}

@@ -50,7 +50,9 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 - [x] **Phase 3 — Care Notes & IRs:** CGL logs dated notes per guy (tag + possible-IR flag) → RS
   activity feed (possible-IR highlighted) + admin-only Beacon link + browse all students. Access
   enforced in the data layer: CGL=own group, RS=hall, student=blocked (404). _(verified all roles 8/6)_
-- [ ] **Phase 4 — Weekly Notes + Resources:** per-week passage, private notes, Enduring Word, RS-editable resources.
+- [x] **Phase 4 — Weekly Notes + Resources:** per-week passage + Enduring Word link + private per-person
+  journal (never interpreted) + week archive; memory verse (public-domain WEB); RS-editable resources
+  with pin-to-Home. RS sets passage/verse/resources. _(verified all roles 8/6)_
 - [ ] **Phase 5 — Trends / Group Maker / CGL Picker / Hub:** admin charts, snake draft, spin-the-wheel, CGL checklist.
 - [ ] **Phase 6 — Notifications + PWA polish:** web push opt-in, install flow, offline.
 
@@ -106,6 +108,18 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
   student (404); student blocked from own notes (404). No console errors.
 - Deferred: real PWA push + read/unread tracking on the RS feed (Phase 6); in-app spiritual-summary
   draft space (open question — export vs. in-app).
+
+### 8/6/2026 (Phase 4 — Weekly Notes + Resources)
+- `src/lib/notes.ts` + `src/lib/resources.ts` (hall-scoped). Personal `WeeklyNote` is private per
+  author per week; RS-only setters for passage/Enduring URL, memory verse, new week, and resources.
+- Screens: `/notes` (passage + Enduring link + private journal + week archive; RS inline edit/new-week),
+  `/verse` (memory verse; RS setter), `/resources` (list; RS add/pin/delete), pinned links on Home.
+- Verified: RS set verse (John 15:5, WEB) + pinned Enduring Word resource → shows on Home "Quick links";
+  student saw passage, wrote a private note (persisted on reload), saw verse + resources with NO edit
+  controls; CGL's `/notes` showed his own empty journal (not the student's) — per-author privacy holds.
+  No console errors.
+- Held to the no-AI line: notes are a blank page + external Enduring Word link; nothing interpreted.
+- Deferred (open questions): CGL sharing teaching notes down to guys; note export.
 
 ### 7/16/2026
 - README.md, STATUS.md
