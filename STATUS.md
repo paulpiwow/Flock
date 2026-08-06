@@ -75,6 +75,22 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 
 ## Changelog
 
+### 8/6/2026 (In-app role management — promote/demote)
+- RS can now **promote a student to CGL** (and demote back) in-app — no more manual DB edits.
+  `src/lib/people.ts` (RS-only) + `/people` page, linked from RS More as **"People."**
+- Promote → role LEADER, clears groupId, creates a new group `"{First}'s Group"` led by them (draft
+  members in via Group Maker). Demote → role MEMBER; their group is freed (leaderId null) or deleted if empty.
+- Verified end-to-end: promoted student1 → became "Community Group Leader" with full CGL UI + a new
+  group ("Sam's Group"); logged in as them to confirm privileges; demoted back → MEMBER, empty group
+  auto-deleted, group count restored. 0 server errors.
+- This delivers part of the parked **1.6 hardening** (RS move/promote). Still open there: RLS as
+  defense-in-depth; assigning a CGL to an existing *leaderless* group (from a demote that kept members).
+
+### 8/6/2026 (Verse nav fix)
+- **Bug:** after the two-tier verse rework, only students had a link to `/verse` — RS and CGL had none
+  (not in Home/taskbar/More), so they couldn't reach verse management. Added a **Verses** tile to the RS
+  and CGL Home grids (swapped out CGL Picker, which stays in each role's More). Verified RS reaches it.
+
 ### 8/6/2026 (1-on-1 tracker; retire LEAD placeholder)
 - The `1-on-1s` and `LEAD Group` tiles were placeholders both pointing at `/hub`. Built **1-on-1s** for
   real and **removed the LEAD tile**.

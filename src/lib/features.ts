@@ -16,7 +16,7 @@ export const HOME_TILES: Record<Role, FeatureTile[]> = {
     { label: "Care Notes", href: "/care", icon: "heart-handshake", desc: "Notes & summaries" },
     { label: "Notes", href: "/notes", icon: "book-open", desc: "This week's passage" },
     { label: "Trends", href: "/trends", icon: "trending-up", desc: "Attendance health" },
-    { label: "CGL Picker", href: "/picker", icon: "disc", desc: "Spin the wheel" },
+    { label: "Verses", href: "/verse", icon: "sparkle", desc: "For your CGLs" },
     { label: "Resources", href: "/resources", icon: "link", desc: "Handy links" },
   ],
   LEADER: [
@@ -24,7 +24,7 @@ export const HOME_TILES: Record<Role, FeatureTile[]> = {
     { label: "Care Notes", href: "/care", icon: "heart-handshake", desc: "Log check-ins" },
     { label: "Notes", href: "/notes", icon: "book-open", desc: "This week's passage" },
     { label: "Hub", href: "/hub", icon: "list-checks", desc: "Your checklist" },
-    { label: "CGL Picker", href: "/picker", icon: "disc", desc: "Spin the wheel" },
+    { label: "Verses", href: "/verse", icon: "sparkle", desc: "For you & your guys" },
     { label: "Resources", href: "/resources", icon: "link", desc: "Handy links" },
   ],
   MEMBER: [
@@ -37,9 +37,9 @@ export const HOME_TILES: Record<Role, FeatureTile[]> = {
 // Overflow grid behind the "More" tab (RS/CGL only).
 export const MORE_TILES: Record<Role, FeatureTile[]> = {
   ADMIN: [
-    { label: "Trends", href: "/trends", icon: "trending-up", desc: "Attendance over time" },
-    { label: "CGL Status", href: "/hub", icon: "list-checks", desc: "Who's on track" },
+    { label: "People", href: "/people", icon: "user-round", desc: "Promote CGLs" },
     { label: "Group Maker", href: "/draft", icon: "shuffle", desc: "Assign groups" },
+    { label: "CGL Status", href: "/hub", icon: "list-checks", desc: "Who's on track" },
     { label: "CGL Picker", href: "/picker", icon: "disc", desc: "Spin the wheel" },
     { label: "Resources", href: "/resources", icon: "link", desc: "Handy links" },
     { label: "Beacon", href: "https://beacon.liberty.edu", icon: "external", desc: "File IRs", external: true },
