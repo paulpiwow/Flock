@@ -53,12 +53,14 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 - [x] **Phase 4 — Weekly Notes + Resources:** per-week passage + Enduring Word link + private per-person
   journal (never interpreted) + week archive; memory verse (public-domain WEB); RS-editable resources
   with pin-to-Home. RS sets passage/verse/resources. _(verified all roles 8/6)_
-- [~] **Phase 5 — Trends / Group Maker / CGL Picker / Hub:**
+- [x] **Phase 5 — Trends / Group Maker / CGL Picker / Hub:**
   - [x] **Community Group Maker** (`/draft`, RS): unassigned pool + per-CGL panels; tap to assign/move/remove;
     doubles as who's-in-each-group. (v1 = RS-run assignment, not live draft.) _(verified 8/6)_
   - [x] **CGL Picker** (`/picker`, RS+CGL): spin-the-wheel auto-filled from the hall's real CGLs. _(verified 8/6)_
-  - [ ] **Attendance Trends** (RS charts) — next.
-  - [ ] **CGL Hub** (checklist: submit-attendance, overdue care notes, 1-on-1s, LEAD) — next.
+  - [x] **Attendance Trends** (`/trends`, RS): SVG chart of overall % over weeks + per-group latest-week bars
+    + rule-based "needs attention" (no PRESENT in last 3 weeks). No AI. _(verified 8/6)_
+  - [x] **CGL Hub** (`/hub`): CGL checklist (attendance submitted? which guys need a care note?) +
+    RS cross-CGL "who's on track" overview. _(verified 8/6)_ 1-on-1/LEAD/Connect Class tracking deferred.
 - [ ] **Phase 6 — Notifications + PWA polish:** web push opt-in, install flow, offline.
 
 ## Open questions (to settle with Paul/Will/Ty)
@@ -135,6 +137,18 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 - Verified: assign (Group 1 7→8, pool 5→4), switch active CGL re-targets pool, remove returns to pool;
   wheel spun and landed correctly on the pointer. No console errors.
 - Remaining Phase 5: Attendance Trends (RS charts) + CGL Hub (checklist).
+
+### 8/6/2026 (Phase 5b — Trends + CGL Hub → Phase 5 complete)
+- **Attendance Trends** (`src/lib/trends.ts` + `/trends`, RS): self-contained SVG line chart of overall
+  weekly %, per-group latest-week bars (color-coded low), rule-based "needs attention" (no PRESENT in
+  last 3 weeks). Seeded 8 weeks of history for Hall 2 via `scripts/seed-history.js` (78→82→88→74→69→91→84→79%).
+- **CGL Hub** (`src/lib/hub.ts` + `/hub`): CGL sees "attendance submitted this week?" + guys still needing
+  a care note this semester (links to /care/[id]); RS sees the same across all CGLs ("who's on track").
+  Added "CGL Status" tile to RS More.
+- Verified: Trends chart + Group 9 dip (0%) + 5 unassigned in needs-attention; RS overview flagged Group 9
+  "No attendance"; CGL Hub showed "Done ✓" + 6 guys needing a note. No console errors.
+- NOTE: current week is now W8 (Colossians 3:1-17) after history seed; the memory verse set earlier was
+  on W1, so /verse shows empty for W8 until an RS sets one. Deferred: 1-on-1/LEAD/Connect Class tracking.
 
 ### 7/16/2026
 - README.md, STATUS.md

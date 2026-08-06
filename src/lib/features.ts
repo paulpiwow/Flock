@@ -38,7 +38,8 @@ export const HOME_TILES: Record<Role, FeatureTile[]> = {
 export const MORE_TILES: Record<Role, FeatureTile[]> = {
   ADMIN: [
     { label: "Trends", href: "/trends", icon: "trending-up", desc: "Attendance over time" },
-    { label: "Group Maker", href: "/draft", icon: "shuffle", desc: "Snake draft" },
+    { label: "CGL Status", href: "/hub", icon: "list-checks", desc: "Who's on track" },
+    { label: "Group Maker", href: "/draft", icon: "shuffle", desc: "Assign groups" },
     { label: "CGL Picker", href: "/picker", icon: "disc", desc: "Spin the wheel" },
     { label: "Resources", href: "/resources", icon: "link", desc: "Handy links" },
     { label: "Beacon", href: "https://beacon.liberty.edu", icon: "external", desc: "File IRs", external: true },
