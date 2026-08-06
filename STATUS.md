@@ -67,7 +67,9 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
     `InstallPrompt` (Android button + iOS Add-to-Home hint, dismissible). Verified via prod build:
     SW active, manifest valid, offline precached, 0 errors. _(8/6)_
   - [ ] Web push notifications (memorize verse / submit attendance / RS roundup).
-  - [ ] Deploy to Vercel (see Go-live checklist).
+  - [x] **Deployed to Vercel** (8/6): `flock-six-self.vercel.app`. Prod build green after adding
+    `postinstall: prisma generate`. First 500 was env vars pasted WITH quotes — fixed (values must be
+    unquoted in Vercel), redeployed clean.
 
 ## Open questions (to settle with Paul/Will/Ty)
 - Hall binding: **join code** vs. RS-approves-against-roster (or both)? Leaning join code for v1.
