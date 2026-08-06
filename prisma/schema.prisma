@@ -35,6 +35,8 @@ enum CareNoteTag {
 model Hall {
   id        String   @id @default(cuid())
   name      String // e.g. "Hall 3"
+  // Secret code an RS shares so his guys bind to THIS hall at signup. Rotatable.
+  joinCode  String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -52,11 +54,14 @@ model User {
   email     String   @unique // must end in @liberty.edu
   username  String
   role      Role     @default(MEMBER)
+  // False disables access without deleting history (e.g. end-of-year, removed).
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  hall   Hall   @relation(fields: [hallId], references: [id])
-  hallId String
+  // Null = PENDING: signed up but not yet bound to a hall. Sees nothing until bound.
+  hall   Hall?   @relation(fields: [hallId], references: [id])
+  hallId String?
 
   // The community group this student belongs to (MEMBER). Null for unassigned.
   group   Group?  @relation("GroupMembers", fields: [groupId], references: [id])
