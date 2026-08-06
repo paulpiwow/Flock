@@ -3,7 +3,9 @@ import { requireActiveUser } from "@/lib/auth";
 import { HOME_TILES } from "@/lib/features";
 import { ROLE_LABEL, type Role } from "@/lib/roles";
 import { getPinnedResources } from "@/lib/resources";
+import { getSelfAttendance } from "@/lib/attendance";
 import { FeatureGrid } from "@/components/FeatureGrid";
+import { SelfCheckInCard } from "@/components/SelfCheckInCard";
 import { SheepMark } from "@/components/SheepMark";
 import { SignOutButton } from "@/components/SignOutButton";
 
@@ -12,6 +14,10 @@ export default async function HomePage() {
   const role = user.role as Role;
   const initial = user.username.charAt(0).toUpperCase();
   const pinned = await getPinnedResources(user.hallId);
+
+  // Students self-check-in from Home — the weekly moment, front and center.
+  const selfAttendance =
+    role === "MEMBER" ? await getSelfAttendance(user) : null;
 
   return (
     <section className="space-y-6">
@@ -38,6 +44,21 @@ export default async function HomePage() {
           </p>
         </div>
       </div>
+
+      {/* Student: this week's check-in, up top */}
+      {selfAttendance?.week && (
+        <SelfCheckInCard
+          passageRef={selfAttendance.week.passageRef}
+          groupName={selfAttendance.group?.name ?? null}
+          leaderName={selfAttendance.group?.leader?.username ?? null}
+          selfReported={!!selfAttendance.record?.selfReportedAt}
+          confirmedStatus={
+            selfAttendance.record?.confirmedAt
+              ? selfAttendance.record.status
+              : null
+          }
+        />
+      )}
 
       {/* Launcher grid */}
       <FeatureGrid tiles={HOME_TILES[role]} />

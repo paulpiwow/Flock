@@ -75,6 +75,12 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 
 ## Changelog
 
+### 8/6/2026 (fixes during UI testing)
+- Migrated `src/middleware.ts` → `src/proxy.ts` (Next 16 convention) to clear the deprecation warning;
+  route protection verified intact.
+- **Bug fix:** students had no way to reach self-check-in (not in their 4-item taskbar). Added the
+  `SelfCheckInCard` to the **student Home**, up top ("This Wednesday → I'm here"). Verified working.
+
 ### 8/5/2026
 - Read design doc; locked v1 decisions above.
 - **Phase 0 complete:** scaffolded Next.js 16 (App Router, TS, Tailwind v4), full Prisma
