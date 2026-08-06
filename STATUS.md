@@ -44,7 +44,9 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 - [ ] **Phase 1.6 — Hall security hardening (TODO):** central hall-scoped query helper for all domain
   reads/writes; enable Postgres RLS as defense-in-depth; RS "move user" / promote actions in-app;
   seed the 3 real RS accounts; rotate-join-code action.
-- [ ] **Phase 2 — Attendance:** roster tap → all-hall alphabetized view.
+- [x] **Phase 2 — Attendance (hybrid):** student self-check-in → CGL roster pre-fills → CGL confirms
+  (official record) → RS all-hall + per-group, absentees on top, alphabetized by last name. Built on a
+  central hall-scoped data layer (`src/lib/attendance.ts`). _(verified all 3 roles 8/6)_
 - [ ] **Phase 3 — Care Notes & IRs:** notes timeline, RS notify, possible-IR flag, Beacon link.
 - [ ] **Phase 4 — Weekly Notes + Resources:** per-week passage, private notes, Enduring Word, RS-editable resources.
 - [ ] **Phase 5 — Trends / Group Maker / CGL Picker / Hub:** admin charts, snake draft, spin-the-wheel, CGL checklist.
@@ -80,6 +82,18 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 - Seeded 3 halls with codes: **Hall 1 = HALL1-F26, Hall 2 = HALL2-F26, Hall 3 = HALL3-F26**.
 - Test accounts (dev): `paul.test@liberty.edu` (Student, Hall 3), `newguy@liberty.edu` (ADMIN, Hall 2);
   password `flockpass123`. **"Confirm email" is OFF in Supabase for dev — turn back ON before launch.**
+
+### 8/6/2026 (Phase 2 — Attendance)
+- Locked the **hybrid attendance model**: student self-check-in → CGL confirms (CGL = record of truth).
+- Added `selfReportedAt` / `confirmedAt` / `confirmedById` to `AttendanceRecord`.
+- Built `src/lib/attendance.ts` — the central hall-scoped data layer (every query injects `hallId`,
+  enforces role/group). Seeded **Hall 2** as a demo hall via `scripts/seed-demo.js` (9 groups, 55
+  students, 9 CGLs, week 1 = John 15:1-11).
+- Reassigned test accounts to Hall 2 for testing: `newguy`=RS, `paul.test`=CGL (Group 1),
+  new `student1@liberty.edu`=Student (Group 1). All password `flockpass123`.
+- Verified full loop in browser: student "I'm here" → CGL sees "self-checked in" pre-fill → confirm
+  (4/7) → RS all-hall shows 4 attended / 51 absent, per-group filter = 4/3. No console errors.
+- Note: demo seed names repeat last-name-first (Adams×N, then Baker…) — cosmetic seed artifact only.
 
 ### 7/16/2026
 - README.md, STATUS.md

@@ -77,9 +77,10 @@ model User {
   careNotesAbout   CareNote[] @relation("CareNoteStudent")
   careNotesWritten CareNote[] @relation("CareNoteAuthor")
 
-  // Attendance records: as the subject and as the recorder (CGL).
-  attendance         AttendanceRecord[] @relation("AttendanceStudent")
-  attendanceRecorded AttendanceRecord[] @relation("AttendanceRecorder")
+  // Attendance records: as the subject, the recorder, and the confirmer (CGL).
+  attendance          AttendanceRecord[] @relation("AttendanceStudent")
+  attendanceRecorded  AttendanceRecord[] @relation("AttendanceRecorder")
+  attendanceConfirmed AttendanceRecord[] @relation("AttendanceConfirmer")
 
   @@index([hallId])
   @@index([groupId])
@@ -154,12 +155,17 @@ model WeeklyNote {
   @@index([weekId])
 }
 
-/// One Wednesday's attendance for one student. Recorded by their CGL.
+/// One Wednesday's attendance for one student. The CGL's confirm is the record
+/// of truth; a student may self-check-in first (selfReportedAt) to pre-fill it.
 model AttendanceRecord {
   id        String           @id @default(cuid())
   status    AttendanceStatus @default(ABSENT)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  // Student tapped "I'm here" (pre-fill hint for the CGL). Null = didn't self-report.
+  selfReportedAt DateTime?
+  // Set when the CGL confirms the roster — this is what makes the record official.
+  confirmedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   hall   Hall   @relation(fields: [hallId], references: [id])
   hallId String
@@ -174,8 +180,11 @@ model AttendanceRecord {
   group   Group?  @relation(fields: [groupId], references: [id])
   groupId String?
 
+  // Who last set the record, and who confirmed it (the CGL).
   recordedBy   User?   @relation("AttendanceRecorder", fields: [recordedById], references: [id])
   recordedById String?
+  confirmedBy   User?  @relation("AttendanceConfirmer", fields: [confirmedById], references: [id])
+  confirmedById String?
 
   @@unique([weekId, studentId])
   @@index([hallId])
