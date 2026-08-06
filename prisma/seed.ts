@@ -2,12 +2,12 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// The three halls (Paul, Will, Ty). Names/codes are placeholders — rename in-app
-// later. The join code is what an RS shares so his guys bind to THIS hall.
+// The three halls. The join code is what an RS shares so his guys bind to THIS
+// hall (case-insensitive at signup; stored uppercase). Rotatable later.
 const HALLS: { name: string; joinCode: string }[] = [
-  { name: "Hall 3", joinCode: "HALL3-F26" },
-  { name: "Hall 1", joinCode: "HALL1-F26" },
-  { name: "Hall 2", joinCode: "HALL2-F26" },
+  { name: "Hall 1", joinCode: "LACASA" }, // Paul
+  { name: "Hall 2", joinCode: "OHANA" }, // Will
+  { name: "Hall 3", joinCode: "OKLY" }, // Ty
 ];
 
 async function main() {
