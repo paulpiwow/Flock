@@ -53,7 +53,12 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
 - [x] **Phase 4 — Weekly Notes + Resources:** per-week passage + Enduring Word link + private per-person
   journal (never interpreted) + week archive; memory verse (public-domain WEB); RS-editable resources
   with pin-to-Home. RS sets passage/verse/resources. _(verified all roles 8/6)_
-- [ ] **Phase 5 — Trends / Group Maker / CGL Picker / Hub:** admin charts, snake draft, spin-the-wheel, CGL checklist.
+- [~] **Phase 5 — Trends / Group Maker / CGL Picker / Hub:**
+  - [x] **Community Group Maker** (`/draft`, RS): unassigned pool + per-CGL panels; tap to assign/move/remove;
+    doubles as who's-in-each-group. (v1 = RS-run assignment, not live draft.) _(verified 8/6)_
+  - [x] **CGL Picker** (`/picker`, RS+CGL): spin-the-wheel auto-filled from the hall's real CGLs. _(verified 8/6)_
+  - [ ] **Attendance Trends** (RS charts) — next.
+  - [ ] **CGL Hub** (checklist: submit-attendance, overdue care notes, 1-on-1s, LEAD) — next.
 - [ ] **Phase 6 — Notifications + PWA polish:** web push opt-in, install flow, offline.
 
 ## Open questions (to settle with Paul/Will/Ty)
@@ -120,6 +125,16 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
   No console errors.
 - Held to the no-AI line: notes are a blank page + external Enduring Word link; nothing interpreted.
 - Deferred (open questions): CGL sharing teaching notes down to guys; note export.
+
+### 8/6/2026 (Phase 5a — Group Maker + CGL Picker)
+- **Community Group Maker** scoped down (per Paul) to an **RS-run assignment board**, not a live
+  multi-device draft: `src/lib/groups.ts` + `/draft`. Unassigned pool + per-CGL panels; RS picks the
+  active CGL then taps guys to draft them in; move/remove supported. Admin-only, hall-scoped.
+- **CGL Picker**: `Wheel.tsx` spin-the-wheel auto-filled from the hall's real CGLs (`getHallCGLs`).
+- Seeded 5 unassigned students into Hall 2 for the draft pool (dev).
+- Verified: assign (Group 1 7→8, pool 5→4), switch active CGL re-targets pool, remove returns to pool;
+  wheel spun and landed correctly on the pointer. No console errors.
+- Remaining Phase 5: Attendance Trends (RS charts) + CGL Hub (checklist).
 
 ### 7/16/2026
 - README.md, STATUS.md
