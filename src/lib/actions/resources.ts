@@ -15,6 +15,7 @@ export type ResourceState = { ok?: boolean; error?: string };
 const schema = z.object({
   label: z.string().trim().min(1, "Enter a label."),
   url: z.string().trim().url("Enter a valid URL."),
+  audience: z.enum(["ADMIN", "LEADERS", "ALL"]),
   pinned: z.boolean(),
 });
 
@@ -26,6 +27,7 @@ export async function addResourceAction(
   const parsed = schema.safeParse({
     label: formData.get("label"),
     url: formData.get("url"),
+    audience: formData.get("audience"),
     pinned: formData.get("pinned") === "on",
   });
   if (!parsed.success) {
@@ -67,6 +69,7 @@ export async function updateResourceAction(
   const parsed = schema.safeParse({
     label: formData.get("label"),
     url: formData.get("url"),
+    audience: formData.get("audience"),
     pinned: formData.get("pinned") === "on",
   });
   if (!id) return { error: "Missing resource." };

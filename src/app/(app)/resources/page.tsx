@@ -4,6 +4,12 @@ import { getResources } from "@/lib/resources";
 import { deleteResourceAction } from "@/lib/actions/resources";
 import { ResourceAddForm } from "@/components/ResourceAddForm";
 
+const AUDIENCE_LABEL: Record<string, string> = {
+  ADMIN: "Only you",
+  LEADERS: "You + CGLs",
+  ALL: "Everyone",
+};
+
 export default async function ResourcesPage() {
   const user = await requireActiveUser();
   const resources = await getResources(user);
@@ -39,9 +45,16 @@ export default async function ResourcesPage() {
                 className="flex flex-1 items-center justify-between gap-2 active:opacity-70"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-foreground">
-                    {r.label}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-foreground">
+                      {r.label}
+                    </p>
+                    {isAdmin && (
+                      <span className="shrink-0 rounded-full bg-flock-100 px-2 py-0.5 text-[10px] font-medium text-flock-700">
+                        {AUDIENCE_LABEL[r.audience]}
+                      </span>
+                    )}
+                  </div>
                   <p className="truncate text-xs text-muted">{r.url}</p>
                 </div>
                 <ExternalLink

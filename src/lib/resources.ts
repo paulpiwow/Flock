@@ -1,15 +1,27 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
+import type { ResourceAudience } from "@prisma/client";
 
 /**
- * Resources data layer — the hall's tidy link list. Everyone reads; only the RS
- * edits. Pinned links also surface on Home.
+ * Resources data layer — the hall's tidy link list. Only the RS edits, and the
+ * RS chooses who each link is for:
+ *   ADMIN   → just the RS(s)
+ *   LEADERS → the RS(s) + CGLs
+ *   ALL     → everyone (incl. students)
+ * A reader only ever sees links scoped at or below their role.
  */
+
+/** The audiences a given role is allowed to see. */
+function visibleAudiences(role: ActiveUser["role"]): ResourceAudience[] {
+  if (role === "ADMIN") return ["ADMIN", "LEADERS", "ALL"];
+  if (role === "LEADER") return ["LEADERS", "ALL"];
+  return ["ALL"];
+}
 
 export async function getResources(user: ActiveUser) {
   return prisma.resource.findMany({
-    where: { hallId: user.hallId },
+    where: { hallId: user.hallId, audience: { in: visibleAudiences(user.role) } },
     orderBy: [{ pinned: "desc" }, { sort: "asc" }, { createdAt: "asc" }],
   });
 }
@@ -29,7 +41,7 @@ function assertAdmin(user: ActiveUser) {
 
 export async function addResource(
   user: ActiveUser,
-  input: { label: string; url: string; pinned: boolean },
+  input: { label: string; url: string; audience: ResourceAudience; pinned: boolean },
 ) {
   assertAdmin(user);
   const last = await prisma.resource.findFirst({
@@ -42,6 +54,7 @@ export async function addResource(
       hallId: user.hallId,
       label: input.label,
       url: input.url,
+      audience: input.audience,
       pinned: input.pinned,
       sort: (last?.sort ?? 0) + 1,
     },
@@ -51,7 +64,7 @@ export async function addResource(
 export async function updateResource(
   user: ActiveUser,
   id: string,
-  input: { label: string; url: string; pinned: boolean },
+  input: { label: string; url: string; audience: ResourceAudience; pinned: boolean },
 ) {
   assertAdmin(user);
   return prisma.resource.updateMany({

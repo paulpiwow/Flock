@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { BookOpen, ExternalLink } from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
 import { getWeekContext, getArchiveWeeks } from "@/lib/notes";
@@ -19,6 +20,8 @@ export default async function NotesPage({
   searchParams: Promise<{ week?: string }>;
 }) {
   const user = await requireActiveUser();
+  // LEAD notes are for CGLs & RSs only; students no longer have this section.
+  if (user.role === "MEMBER") redirect("/home");
   const { week: weekParam } = await searchParams;
 
   const [ctx, weeks] = await Promise.all([
@@ -29,7 +32,7 @@ export default async function NotesPage({
   if (!ctx) {
     return (
       <section className="space-y-2">
-        <h1 className="text-xl font-bold text-flock-800">Campcom Notes</h1>
+        <h1 className="text-xl font-bold text-flock-800">LEAD</h1>
         <p className="text-sm text-muted">
           No week is set up yet.
           {user.role === "ADMIN" ? " Start one below." : " Check back soon."}

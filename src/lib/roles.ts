@@ -41,8 +41,8 @@ export const TASKBAR: Record<Role, NavItem[]> = {
   MEMBER: [
     { label: "Home", href: "/home", icon: "home" },
     { label: "Prayer", href: "/prayer", icon: "prayer" },
-    { label: "Campcom", href: "/notes", icon: "book-open" },
     { label: "Verse", href: "/verse", icon: "sparkle" },
+    { label: "Attendance", href: "/attendance", icon: "check-square" },
     { label: "Resources", href: "/resources", icon: "link" },
   ],
 };

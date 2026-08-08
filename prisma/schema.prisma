@@ -270,18 +270,27 @@ model PrayerRequest {
   @@index([audience])
 }
 
-/// RS-editable link the hall always needs (Enduring Word, sign-out form, portals).
+/// Who on the hall can see a resource link the RS adds.
+enum ResourceAudience {
+  ADMIN // just the RS(s)
+  LEADERS // the RS(s) + CGLs
+  ALL // everyone on the hall (incl. students)
+}
+
+/// RS-editable link the hall always needs (sign-out form, portals, etc.).
 model Resource {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   label     String
   url       String
-  pinned    Boolean  @default(false) // pin to Home
-  sort      Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  audience  ResourceAudience @default(ALL)
+  pinned    Boolean          @default(false) // pin to Home
+  sort      Int              @default(0)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
   hall   Hall   @relation(fields: [hallId], references: [id])
   hallId String
 
   @@index([hallId])
+  @@index([audience])
 }

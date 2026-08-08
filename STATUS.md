@@ -107,6 +107,23 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 
 ## Changelog
 
+### 8/8/2026 (post-testing tweaks — batch 6, students + resource scoping)
+1. RS Home: swapped **Verses** and **Attendance** tile positions (Verses now next to LEAD, Attendance
+   last).
+2. RS More: removed the **Attendance** tile (still on RS Home + reachable at /attendance).
+3. **Students lose the Campcom notes section entirely:** removed from their navbar + Home; `/notes`
+   now redirects MEMBER → /home. LEAD notes stay for CGLs & RSs (empty-state heading fixed to "LEAD").
+4. Student Home + navbar now have **Resources** and **Attendance** boxes; navbar order is Home ·
+   Prayer · Verse · Attendance · Resources (Attendance next to Resources). Attendance → `/attendance`,
+   which already renders the student self-check-in card.
+5. **Resource visibility scoping.** New `ResourceAudience { ADMIN, LEADERS, ALL }` on `Resource`
+   (default ALL, pushed). The RS's add form now has **Only me / Me + CGLs / Everyone** buttons; the
+   data layer filters reads by role (RS sees all; CGL sees LEADERS+ALL; student sees ALL only). RS list
+   shows a scope badge per link. `getResources` is the single gate — enforced server-side.
+- Build + typecheck green. Verified RS (tile order, no More Attendance, add w/ scope + badges), student
+  (nav/tiles, /notes redirect, sees only ALL resource, attendance check-in card). No console errors.
+  Prisma client regen again needed the dev server stopped first (Windows DLL lock).
+
 ### 8/8/2026 (post-testing tweaks — batch 5, home/more layout)
 1. RS More page: **CGL Status** and **CGL Picker** now sit above People (order: Attendance, CGL
    Status, CGL Picker, People, Group Maker, Resources).
