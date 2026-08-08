@@ -81,7 +81,13 @@ export default async function NotesPage({
         />
       )}
 
-      <WeeklyNoteEditor weekId={week.id} initialBody={note?.body ?? ""} />
+      {/* key resets the editor (uncontrolled textarea + save state) per week,
+          so switching weeks never carries over unsaved text. */}
+      <WeeklyNoteEditor
+        key={week.id}
+        weekId={week.id}
+        initialBody={note?.body ?? ""}
+      />
 
       {/* Archive */}
       {weeks.length > 1 && (

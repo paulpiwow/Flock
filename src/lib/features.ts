@@ -27,8 +27,8 @@ export const HOME_TILES: Record<Role, FeatureTile[]> = {
   ],
   MEMBER: [
     { label: "Prayer Requests", href: "/prayer", icon: "prayer", desc: "Send to your CGL" },
-    { label: "Attendance", href: "/attendance", icon: "check-square", desc: "Check in Wednesday" },
     { label: "Memory Verse", href: "/verse", icon: "sparkle", desc: "Verse of the week" },
+    { label: "Attendance", href: "/attendance", icon: "check-square", desc: "Check in Wednesday" },
     { label: "Resources", href: "/resources", icon: "link", desc: "Handy links" },
   ],
 };

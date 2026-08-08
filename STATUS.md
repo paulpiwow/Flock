@@ -107,6 +107,14 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 
 ## Changelog
 
+### 8/8/2026 (post-testing tweaks — batch 7, student tiles + notes bug)
+1. Student Home: swapped **Memory Verse** and **Attendance** tile positions (Prayer Requests, Memory
+   Verse, Attendance, Resources).
+2. **Bug fix — LEAD notes carried unsaved text across weeks.** The journal `<textarea>` is uncontrolled
+   (`defaultValue`), so navigating to another week reused the same DOM node and kept whatever was typed.
+   Added `key={week.id}` on `WeeklyNoteEditor` in the notes page so it remounts per week — unsaved text
+   is discarded and the selected week's own notes load. Verified in browser.
+
 ### 8/8/2026 (post-testing tweaks — batch 6, students + resource scoping)
 1. RS Home: swapped **Verses** and **Attendance** tile positions (Verses now next to LEAD, Attendance
    last).
