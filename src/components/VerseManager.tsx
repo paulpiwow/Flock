@@ -1,8 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import { Trash2 } from "lucide-react";
-import { deleteVerseAction, type VerseState } from "@/lib/actions/verses";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { Search, Trash2 } from "lucide-react";
+import {
+  deleteVerseAction,
+  lookupVerse,
+  type VerseState,
+} from "@/lib/actions/verses";
 import { cn } from "@/lib/cn";
 
 type Verse = {
@@ -31,15 +35,48 @@ export function VerseManager({
   emptyText: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [reference, setReference] = useState("");
+  const [preview, setPreview] = useState<{ reference: string; text: string } | null>(
+    null,
+  );
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [looking, startLookup] = useTransition();
+
   const [state, formAction, pending] = useActionState(addAction, initial);
   const ref = useRef<HTMLFormElement>(null);
 
+  function reset() {
+    setOpen(false);
+    setReference("");
+    setPreview(null);
+    setLookupError(null);
+  }
+
+  // Close + clear once a verse is saved.
   useEffect(() => {
     if (state.ok) {
       ref.current?.reset();
-      setOpen(false);
+      reset();
     }
   }, [state.ok]);
+
+  function doLookup() {
+    const q = reference.trim();
+    if (!q) {
+      setLookupError("Enter a reference first.");
+      return;
+    }
+    setLookupError(null);
+    startLookup(async () => {
+      const res = await lookupVerse(q);
+      if (res.error) {
+        setPreview(null);
+        setLookupError(res.error);
+      } else {
+        setPreview({ reference: res.reference, text: res.text });
+      }
+    });
+  }
 
   return (
     <div className="space-y-3">
@@ -77,25 +114,76 @@ export function VerseManager({
         </ul>
       )}
 
-      {open ? (
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full rounded-xl border border-dashed border-flock-300 bg-flock-50 px-4 py-2.5 text-sm font-medium text-flock-700 hover:bg-flock-100"
+        >
+          + Add a verse
+        </button>
+      ) : !preview ? (
+        // Step 1 — look up a reference (WEB translation, fetched for you).
+        <div className="space-y-2 rounded-card border border-border bg-surface p-4 shadow-sm">
+          <label className="block text-xs font-medium text-muted">
+            Find a verse
+          </label>
+          <div className="flex gap-2">
+            <input
+              autoFocus
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  doLookup();
+                }
+              }}
+              placeholder="Reference, e.g. John 15:5"
+              className={inputCls}
+            />
+            <button
+              type="button"
+              onClick={doLookup}
+              disabled={looking}
+              className={cn(
+                "flex shrink-0 items-center gap-1 rounded-lg bg-flock-700 px-3 py-2 text-xs font-semibold text-white hover:bg-flock-800",
+                looking && "opacity-70",
+              )}
+            >
+              <Search className="h-3.5 w-3.5" aria-hidden />
+              {looking ? "Looking…" : "Look up"}
+            </button>
+          </div>
+          {lookupError && (
+            <p className="text-xs font-medium text-absent">{lookupError}</p>
+          )}
+          <button
+            type="button"
+            onClick={reset}
+            className="text-xs font-medium text-muted hover:text-foreground"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        // Step 2 — confirm the fetched verse (text is editable if they want).
         <form
           ref={ref}
           action={formAction}
           className="space-y-2 rounded-card border border-border bg-surface p-4 shadow-sm"
         >
           {groupId && <input type="hidden" name="groupId" value={groupId} />}
-          <input
-            name="reference"
-            placeholder="Reference, e.g. John 15:5"
-            required
-            className={inputCls}
-          />
+          <input type="hidden" name="reference" value={preview.reference} />
+          <p className="text-sm font-semibold text-flock-700">
+            {preview.reference}{" "}
+            <span className="font-normal text-muted">· WEB</span>
+          </p>
           <textarea
             name="text"
-            rows={3}
-            placeholder="Verse text — use a public-domain translation (WEB or KJV)."
+            rows={4}
+            defaultValue={preview.text}
             required
-            className={cn(inputCls, "resize-y")}
+            className={cn(inputCls, "resize-y leading-relaxed")}
           />
           {state.error && (
             <p className="text-xs font-medium text-absent">{state.error}</p>
@@ -113,20 +201,16 @@ export function VerseManager({
             </button>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setPreview(null);
+                setLookupError(null);
+              }}
               className="rounded-lg px-3 py-2 text-xs font-medium text-muted hover:text-foreground"
             >
-              Cancel
+              Search again
             </button>
           </div>
         </form>
-      ) : (
-        <button
-          onClick={() => setOpen(true)}
-          className="w-full rounded-xl border border-dashed border-flock-300 bg-flock-50 px-4 py-2.5 text-sm font-medium text-flock-700 hover:bg-flock-100"
-        >
-          + Add a verse
-        </button>
       )}
     </div>
   );

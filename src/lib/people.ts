@@ -109,24 +109,7 @@ export async function promoteToCgl(user: ActiveUser, studentId: string) {
   ]);
 }
 
-/** Appoint a co-RS on this hall (student or CGL -> ADMIN). */
-export async function promoteToRs(user: ActiveUser, targetId: string) {
-  assertAdmin(user);
-  if (targetId === user.id) throw new Error("You can't change your own role.");
-  const target = await prisma.user.findFirst({
-    where: { id: targetId, hallId: user.hallId, role: { in: ["MEMBER", "LEADER"] } },
-    select: { id: true },
-  });
-  if (!target) throw new Error("Person not found on this hall.");
-
-  await prisma.$transaction(async (tx) => {
-    await freeLedGroups(tx, user.hallId, targetId);
-    await tx.user.update({
-      where: { id: targetId },
-      data: { role: "ADMIN", groupId: null },
-    });
-  });
-}
+// RS accounts are provisioned via scripts/set-role.js (out-of-band), not in-app.
 
 /** Demote a CGL or co-RS back to student. Their group is freed / deleted if empty. */
 export async function demoteToStudent(user: ActiveUser, targetId: string) {

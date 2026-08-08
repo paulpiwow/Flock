@@ -107,6 +107,28 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 
 ## Changelog
 
+### 8/8/2026 (remove in-app "Make RS")
+- Removed the **Make RS** button from the People page and its `promoteToRsAction` / `promoteToRs`
+  code path. RS accounts are now provisioned the same way for every hall: the new RS signs up with
+  their hall's join code (binds as MEMBER), then is promoted once via `node scripts/set-role.js
+  <email> ADMIN`. Keeps role-granting deliberate and consistent (the first RS on any hall always
+  needed the script anyway). CGL rows now show only Demote; student rows only Make CGL.
+- Tradeoff noted: appointing a co-RS now requires the script (prod DB access) instead of a button —
+  fine for ~1 RS per hall.
+- Join codes unchanged: still set via the seed / Supabase table editor (not RS-generated).
+
+### 8/8/2026 (verse lookup — auto-fetch verse text)
+- Memory verse add flow no longer requires hand-typing the text. The RS/CGL types a **reference**
+  (e.g. "Philippians 4:6-7"), hits **Look up**, and the text is fetched and shown to confirm (still
+  editable) before saving. Two-step UI in `VerseManager` (lookup → confirm/add; "Search again" resets).
+- **Translation: WEB (World English Bible) via bible-api.com** — public domain, **no API key**, no
+  attribution/licensing burden. Matches the existing copyright decision (public-domain translation).
+  New `src/lib/bible.ts` (`lookupVerse`, server-only fetch, `no-store`) + `lookupVerse` server action
+  in `actions/verses.ts` (auth-gated, no DB writes). Verse text is collapsed to a clean paragraph.
+- Graceful errors: bad reference → "Couldn’t find that reference…"; network failure → retry message.
+- Verified in browser (RS): lookup fills the text, add saves it to the list, bad refs show the error.
+  No console errors. NB: bible-api.com rate-limits ~15 req / 30s per IP — fine for this use.
+
 ### 8/8/2026 (post-testing tweaks — batch 7, student tiles + notes bug)
 1. Student Home: swapped **Memory Verse** and **Attendance** tile positions (Prayer Requests, Memory
    Verse, Attendance, Resources).

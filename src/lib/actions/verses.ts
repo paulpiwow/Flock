@@ -4,8 +4,25 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireActiveUser } from "@/lib/auth";
 import { addLeaderVerse, addGroupVerse, deleteVerse } from "@/lib/verses";
+import { lookupVerse as lookupVerseText } from "@/lib/bible";
 
 export type VerseState = { ok?: boolean; error?: string };
+
+export type VerseLookupResult =
+  | { reference: string; text: string; error?: undefined }
+  | { error: string; reference?: undefined; text?: undefined };
+
+/** Look up a verse's text by reference (WEB, public domain). No DB writes. */
+export async function lookupVerse(
+  reference: string,
+): Promise<VerseLookupResult> {
+  await requireActiveUser();
+  try {
+    return await lookupVerseText(reference);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Lookup failed." };
+  }
+}
 
 const verseSchema = z.object({
   reference: z.string().trim().min(1, "Enter a reference."),

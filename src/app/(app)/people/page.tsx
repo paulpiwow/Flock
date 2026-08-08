@@ -1,27 +1,11 @@
 import { redirect } from "next/navigation";
-import { ArrowDownRight, ShieldPlus, UserPlus } from "lucide-react";
+import { ArrowDownRight, UserPlus } from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
 import { getPeople } from "@/lib/people";
 import {
   promoteToCglAction,
-  promoteToRsAction,
   demoteToStudentAction,
 } from "@/lib/actions/people";
-
-function MakeRs({ id }: { id: string }) {
-  return (
-    <form action={promoteToRsAction}>
-      <input type="hidden" name="id" value={id} />
-      <button
-        type="submit"
-        className="flex items-center gap-1 rounded-lg border border-flock-300 bg-flock-50 px-2.5 py-1.5 text-xs font-semibold text-flock-800 hover:bg-flock-100"
-      >
-        <ShieldPlus className="h-3.5 w-3.5" aria-hidden />
-        Make RS
-      </button>
-    </form>
-  );
-}
 
 function MakeCgl({ id }: { id: string }) {
   return (
@@ -117,7 +101,6 @@ export default async function PeoplePage() {
           <ul className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
             {cgls.map((c) => (
               <Row key={c.id} name={c.username} subtitle={c.groupName ?? "No group"}>
-                <MakeRs id={c.id} />
                 <Demote id={c.id} />
               </Row>
             ))}
@@ -134,7 +117,6 @@ export default async function PeoplePage() {
           {students.map((s) => (
             <Row key={s.id} name={s.username} subtitle={s.groupName ?? "No group"}>
               <MakeCgl id={s.id} />
-              <MakeRs id={s.id} />
             </Row>
           ))}
         </ul>
