@@ -32,10 +32,6 @@ export default async function LandingPage() {
           </h2>
           <AuthForm />
         </div>
-
-        <p className="mt-6 text-center text-xs text-muted">
-          Liberty University · Resident Life
-        </p>
       </div>
     </main>
   );

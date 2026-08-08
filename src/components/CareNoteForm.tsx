@@ -48,15 +48,6 @@ export function CareNoteForm({ studentId }: { studentId: string }) {
           <option value="PRAYER">Prayer</option>
           <option value="FOLLOW_UP">Follow-up</option>
         </select>
-
-        <label className="flex items-center gap-2 text-sm text-foreground">
-          <input
-            type="checkbox"
-            name="possibleIR"
-            className="h-4 w-4 rounded border-border text-absent focus:ring-absent"
-          />
-          Flag as possible IR
-        </label>
       </div>
 
       {state.error && (

@@ -107,6 +107,13 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 
 ## Changelog
 
+### 8/6/2026 (post-testing tweaks — batch 1)
+- Removed "Liberty University · Resident Life" line from the landing page.
+- Removed the **"Flag as possible IR"** feature from the UI: checkbox on the care-note form, the
+  Possible-IR badges/red border on the timeline + RS feed, and the possible-IR-first sort in the RS
+  feed. Left the `possibleIR` column + `POSSIBLE_IR` enum in the schema (unused) to avoid a migration.
+  Beacon IR link (RS) is unchanged. Verified: landing text gone, care form has no checkbox, no errors.
+
 ### 8/6/2026 (PWA install experience)
 - Generated PNG icons from the sheep mark (`scripts/gen-icons.js` via sharp): icon-192/512 (maskable-safe)
   + apple-touch-icon 180. Manifest already referenced 192/512.

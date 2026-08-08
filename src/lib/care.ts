@@ -61,7 +61,6 @@ export async function addCareNote(
     studentId: string;
     body: string;
     tag: "PRAYER" | "FOLLOW_UP" | null;
-    possibleIR: boolean;
   },
 ) {
   await requireStudentAccess(user, input.studentId);
@@ -73,8 +72,7 @@ export async function addCareNote(
       studentId: input.studentId,
       authorId: user.id,
       body: input.body.trim(),
-      tag: input.possibleIR ? "POSSIBLE_IR" : input.tag,
-      possibleIR: input.possibleIR,
+      tag: input.tag,
       semester,
     },
   });
@@ -110,7 +108,7 @@ export async function getRecentCareNotes(user: ActiveUser, take = 25) {
   if (user.role !== "ADMIN") throw new Error("Admin only.");
   return prisma.careNote.findMany({
     where: { hallId: user.hallId },
-    orderBy: [{ possibleIR: "desc" }, { createdAt: "desc" }],
+    orderBy: [{ createdAt: "desc" }],
     take,
     include: {
       author: { select: { username: true } },

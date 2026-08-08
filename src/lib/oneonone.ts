@@ -101,7 +101,6 @@ export async function logOneOnOne(
       studentId,
       body: `1-on-1: ${note}`,
       tag: "FOLLOW_UP",
-      possibleIR: false,
     });
   }
 }

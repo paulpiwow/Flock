@@ -11,7 +11,6 @@ const schema = z.object({
   studentId: z.string().min(1),
   body: z.string().trim().min(1, "Write a note first.").max(4000),
   tag: z.enum(["PRAYER", "FOLLOW_UP"]).nullable(),
-  possibleIR: z.boolean(),
 });
 
 export async function addCareNoteAction(
@@ -26,7 +25,6 @@ export async function addCareNoteAction(
     studentId: formData.get("studentId"),
     body: formData.get("body"),
     tag: tagRaw === "PRAYER" || tagRaw === "FOLLOW_UP" ? tagRaw : null,
-    possibleIR: formData.get("possibleIR") === "on",
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid note." };

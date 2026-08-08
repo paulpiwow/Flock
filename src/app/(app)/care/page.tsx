@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, ChevronRight, ExternalLink } from "lucide-react";
+import { ChevronRight, ExternalLink } from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
 import {
   getMyGuysWithNotes,
@@ -8,7 +8,6 @@ import {
   getHallStudentsWithNotes,
 } from "@/lib/care";
 import { BEACON_URL } from "@/lib/constants";
-import { cn } from "@/lib/cn";
 
 function fmtDate(d: Date | null) {
   if (!d) return "No notes yet";
@@ -99,21 +98,12 @@ export default async function CarePage() {
               <li key={n.id}>
                 <Link
                   href={`/care/${n.student.id}`}
-                  className={cn(
-                    "block rounded-card border bg-surface p-3 shadow-sm active:bg-flock-50",
-                    n.possibleIR ? "border-absent/40" : "border-border",
-                  )}
+                  className="block rounded-card border border-border bg-surface p-3 shadow-sm active:bg-flock-50"
                 >
                   <div className="mb-0.5 flex items-center justify-between gap-2">
                     <span className="text-sm font-medium text-foreground">
                       {n.student.username}
                     </span>
-                    {n.possibleIR && (
-                      <span className="flex items-center gap-1 rounded-full bg-absent/10 px-2 py-0.5 text-[10px] font-semibold text-absent">
-                        <AlertTriangle className="h-3 w-3" aria-hidden /> Possible
-                        IR
-                      </span>
-                    )}
                   </div>
                   <p className="line-clamp-2 text-xs text-muted">{n.body}</p>
                   <p className="mt-0.5 text-[11px] text-muted">
