@@ -107,6 +107,17 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 
 ## Changelog
 
+### 8/8/2026 (post-testing tweaks — batch 5, home/more layout)
+1. RS More page: **CGL Status** and **CGL Picker** now sit above People (order: Attendance, CGL
+   Status, CGL Picker, People, Group Maker, Resources).
+2. Removed the **"File an IR in Beacon"** box from the RS Spiritual Summaries page (+ unused
+   `BEACON_URL` / `ExternalLink` imports).
+3. RS Home tile order → **Prayer Requests** (first), Spiritual Summaries, LEAD, **Attendance**, Trends,
+   Verses — so in the 2-col grid Attendance sits next to LEAD and Trends/Verses are the last row.
+4. CGL Home: replaced the **Attendance** tile with **Prayer Requests** (Attendance still at the top of
+   the CGL More page).
+- Pure UI (features.ts + care/page.tsx); no schema change. Verified RS + CGL in browser, no console errors.
+
 ### 8/8/2026 (post-testing tweaks — batch 4)
 1. **Removed the tag dropdown** from Spiritual Summaries: gone from the form (`CareNoteForm`), the
    action + zod schema (`actions/care.ts`), the data layer (`addCareNote` in `care.ts`), and the

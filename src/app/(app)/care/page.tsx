@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, ExternalLink } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
 import {
   getMyGuysWithNotes,
   getRecentCareNotes,
   getHallStudentsWithNotes,
 } from "@/lib/care";
-import { BEACON_URL } from "@/lib/constants";
 import { groupLabel } from "@/lib/names";
 
 function fmtDate(d: Date | null) {
@@ -70,24 +69,6 @@ export default async function CarePage() {
   return (
     <section className="space-y-6">
       <h1 className="text-xl font-bold text-flock-800">Spiritual Summaries</h1>
-
-      {/* Admin-only Beacon link */}
-      <a
-        href={BEACON_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-between rounded-card border border-border bg-surface p-4 shadow-sm active:bg-flock-50"
-      >
-        <div>
-          <p className="text-sm font-semibold text-foreground">
-            File an IR in Beacon
-          </p>
-          <p className="text-xs text-muted">
-            IRs are officially recorded in Liberty&apos;s Beacon system.
-          </p>
-        </div>
-        <ExternalLink className="h-4 w-4 text-flock-700" aria-hidden />
-      </a>
 
       {/* Recent activity */}
       <div>
