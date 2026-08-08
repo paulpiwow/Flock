@@ -69,7 +69,7 @@ export function VerseManager({
     setLookupError(null);
     startLookup(async () => {
       const res = await lookupVerse(q);
-      if (res.error) {
+      if (!res.ok) {
         setPreview(null);
         setLookupError(res.error);
       } else {

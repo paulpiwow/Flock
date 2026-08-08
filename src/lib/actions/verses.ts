@@ -9,8 +9,8 @@ import { lookupVerse as lookupVerseText } from "@/lib/bible";
 export type VerseState = { ok?: boolean; error?: string };
 
 export type VerseLookupResult =
-  | { reference: string; text: string; error?: undefined }
-  | { error: string; reference?: undefined; text?: undefined };
+  | { ok: true; reference: string; text: string }
+  | { ok: false; error: string };
 
 /** Look up a verse's text by reference (WEB, public domain). No DB writes. */
 export async function lookupVerse(
@@ -18,9 +18,10 @@ export async function lookupVerse(
 ): Promise<VerseLookupResult> {
   await requireActiveUser();
   try {
-    return await lookupVerseText(reference);
+    const v = await lookupVerseText(reference);
+    return { ok: true, reference: v.reference, text: v.text };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Lookup failed." };
+    return { ok: false, error: e instanceof Error ? e.message : "Lookup failed." };
   }
 }
 
