@@ -20,7 +20,8 @@ export default async function LandingPage() {
             Flock
           </h1>
           <p className="mt-2 text-sm text-muted">
-            Shepherding the hall — attendance, care notes, and weekly Scripture,
+            Shepherding the hall — attendance, spiritual summaries, and weekly
+            Scripture,
             all in one place.
           </p>
         </div>

@@ -11,7 +11,7 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "Flock",
   description:
-    "Shepherding a hall — attendance, care notes, and weekly Scripture, all in one place.",
+    "Shepherding a hall — attendance, spiritual summaries, and weekly Scripture, all in one place.",
   manifest: "/manifest.webmanifest",
   applicationName: "Flock",
   appleWebApp: {

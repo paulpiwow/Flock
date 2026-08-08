@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireActiveUser } from "@/lib/auth";
 import { getGroupRoster, getMyLedGroup } from "@/lib/attendance";
+import { groupLabel } from "@/lib/names";
 import { RosterConfirm, type RosterItem } from "@/components/RosterConfirm";
 import { ComingSoon } from "@/components/ComingSoon";
 
@@ -15,18 +16,19 @@ export default async function GroupPage() {
   if (!led) {
     return (
       <ComingSoon
-        title="My Group"
+        title="Attendance"
         blurb="You're not leading a group yet. Your RS assigns groups in the Community Group Maker."
       />
     );
   }
 
   const { group, week, roster } = await getGroupRoster(user, led.id);
+  const label = groupLabel(group.leader?.username, group.name);
 
   if (!week) {
     return (
       <section className="space-y-2">
-        <h1 className="text-xl font-bold text-flock-800">{group.name}</h1>
+        <h1 className="text-xl font-bold text-flock-800">{label}</h1>
         <p className="text-sm text-muted">No meeting is set up yet.</p>
       </section>
     );
@@ -43,7 +45,7 @@ export default async function GroupPage() {
   return (
     <section className="space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-flock-800">{group.name}</h1>
+        <h1 className="text-xl font-bold text-flock-800">{label}</h1>
         <p className="text-sm text-muted">Tap who came, then confirm.</p>
       </div>
       <RosterConfirm

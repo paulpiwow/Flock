@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { saveWeeklyNoteAction, type SaveState } from "@/lib/actions/notes";
+import { NotesTextarea } from "@/components/NotesTextarea";
 import { cn } from "@/lib/cn";
 
 const initial: SaveState = {};
@@ -24,12 +25,12 @@ export function WeeklyNoteEditor({
       <label htmlFor="body" className="block text-xs font-medium text-muted">
         Your private notes
       </label>
-      <textarea
+      <NotesTextarea
         id="body"
         name="body"
         rows={10}
         defaultValue={initialBody}
-        placeholder="A blank page for your own study. Only you can see this."
+        placeholder="A blank page for your own study. Type '- ' for a bullet; Tab to indent. Only you can see this."
         className="w-full resize-y rounded-card border border-border bg-surface px-3 py-3 text-sm leading-relaxed text-foreground shadow-sm outline-none placeholder:text-muted/60 focus:border-flock-600 focus:ring-2 focus:ring-flock-300"
       />
       <div className="flex items-center justify-between">

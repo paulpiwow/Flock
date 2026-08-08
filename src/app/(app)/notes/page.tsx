@@ -29,7 +29,7 @@ export default async function NotesPage({
   if (!ctx) {
     return (
       <section className="space-y-2">
-        <h1 className="text-xl font-bold text-flock-800">Weekly Notes</h1>
+        <h1 className="text-xl font-bold text-flock-800">Campcom Notes</h1>
         <p className="text-sm text-muted">
           No week is set up yet.
           {user.role === "ADMIN" ? " Start one below." : " Check back soon."}

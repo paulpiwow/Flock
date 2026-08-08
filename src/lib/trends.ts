@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
-import { byLastName } from "@/lib/names";
+import { byLastName, groupLabel } from "@/lib/names";
 
 /**
  * Attendance Trends (RS only). Pure counts over time — no AI, no interpretation.
@@ -37,7 +37,12 @@ export async function getTrends(user: ActiveUser): Promise<TrendsData> {
     prisma.group.findMany({
       where: { hallId },
       orderBy: { name: "asc" },
-      select: { id: true, name: true, _count: { select: { members: true } } },
+      select: {
+        id: true,
+        name: true,
+        leader: { select: { username: true } },
+        _count: { select: { members: true } },
+      },
     }),
     prisma.attendanceRecord.findMany({
       where: { hallId, status: "PRESENT" },
@@ -81,7 +86,7 @@ export async function getTrends(user: ActiveUser): Promise<TrendsData> {
     const present = groupPresent.get(g.id) ?? 0;
     return {
       id: g.id,
-      name: g.name,
+      name: groupLabel(g.leader?.username, g.name),
       present,
       total,
       pct: total ? Math.round((present / total) * 100) : 0,

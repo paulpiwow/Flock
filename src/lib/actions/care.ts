@@ -10,7 +10,6 @@ export type CareNoteState = { ok?: boolean; error?: string };
 const schema = z.object({
   studentId: z.string().min(1),
   body: z.string().trim().min(1, "Write a note first.").max(4000),
-  tag: z.enum(["PRAYER", "FOLLOW_UP"]).nullable(),
 });
 
 export async function addCareNoteAction(
@@ -20,11 +19,9 @@ export async function addCareNoteAction(
   const user = await requireActiveUser();
   if (user.role === "MEMBER") return { error: "Not authorized." };
 
-  const tagRaw = String(formData.get("tag") ?? "");
   const parsed = schema.safeParse({
     studentId: formData.get("studentId"),
     body: formData.get("body"),
-    tag: tagRaw === "PRAYER" || tagRaw === "FOLLOW_UP" ? tagRaw : null,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid note." };

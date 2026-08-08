@@ -39,10 +39,6 @@ export function ResourceAddForm() {
     >
       <input name="label" placeholder="Label, e.g. Late-night sign-out" required className={inputCls} />
       <input name="url" type="url" placeholder="https://…" required className={inputCls} />
-      <label className="flex items-center gap-2 text-sm text-foreground">
-        <input type="checkbox" name="pinned" className="h-4 w-4 rounded border-border text-flock-700" />
-        Pin to Home
-      </label>
       {state.error && <p className="text-xs font-medium text-absent">{state.error}</p>}
       {state.ok && <p className="text-xs font-medium text-flock-700">Added ✓</p>}
       <div className="flex gap-2">

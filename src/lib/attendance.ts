@@ -1,7 +1,8 @@
 import "server-only";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
-import { byLastName } from "@/lib/names";
+import { byLastName, groupLabel } from "@/lib/names";
 
 /**
  * Attendance data layer — the ONE place attendance is read/written. Every
@@ -9,12 +10,86 @@ import { byLastName } from "@/lib/names";
  * access is structurally impossible; role/group checks live here too.
  */
 
-/** The current Wednesday for a hall = most recent week by date, then index. */
+const TZ = "America/New_York";
+
+/**
+ * Canonical key for the current attendance week: this week's Wednesday (most
+ * recent Wed in ET), normalized to noon UTC. The week rolls every Wednesday, so
+ * a new week starts with no one checked until that night's check-ins.
+ */
+function currentWeekAnchor(now: Date = new Date()): Date {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    weekday: "short",
+  }).formatToParts(now);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  const y = Number(get("year"));
+  const mo = Number(get("month"));
+  const d = Number(get("day"));
+  const wd = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(
+    get("weekday"),
+  );
+  const daysSinceWed = (wd - 3 + 7) % 7; // Wednesday = 3
+  const anchor = new Date(Date.UTC(y, mo - 1, d, 12, 0, 0, 0));
+  anchor.setUTCDate(anchor.getUTCDate() - daysSinceWed);
+  return anchor;
+}
+
+function semesterLabel(d: Date): string {
+  const m = d.getUTCMonth();
+  const y = d.getUTCFullYear();
+  if (m >= 7) return `Fall ${y}`; // Aug–Dec
+  if (m <= 4) return `Spring ${y}`; // Jan–May
+  return `Summer ${y}`; // Jun–Jul
+}
+
+/**
+ * The current week for a hall — auto-created for the current calendar week if it
+ * doesn't exist yet, so attendance refreshes weekly with no manual RS step.
+ * New weeks get a "Passage TBD" placeholder until the RS sets the passage.
+ */
 export async function getCurrentWeek(hallId: string) {
-  return prisma.week.findFirst({
-    where: { hallId },
-    orderBy: [{ date: "desc" }, { index: "desc" }],
+  const anchor = currentWeekAnchor();
+  const start = new Date(anchor);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(anchor);
+  end.setUTCHours(23, 59, 59, 999);
+
+  const existing = await prisma.week.findFirst({
+    where: { hallId, date: { gte: start, lte: end } },
   });
+  if (existing) return existing;
+
+  const semester = semesterLabel(anchor);
+  const last = await prisma.week.findFirst({
+    where: { hallId, semester },
+    orderBy: { index: "desc" },
+    select: { index: true },
+  });
+  try {
+    return await prisma.week.create({
+      data: {
+        hallId,
+        index: (last?.index ?? 0) + 1,
+        date: anchor,
+        semester,
+        passageRef: "Passage TBD",
+        enduringUrl: null,
+      },
+    });
+  } catch (e) {
+    // A concurrent first-read may have created it (unique index+semester).
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      const w = await prisma.week.findFirst({
+        where: { hallId, date: { gte: start, lte: end } },
+      });
+      if (w) return w;
+    }
+    throw e;
+  }
 }
 
 /** The student's own group + their record for the current week (self-check-in). */
@@ -172,11 +247,15 @@ export async function getAllHallAttendance(user: ActiveUser, groupId?: string) {
   return { week, attended, absent, total: members.length };
 }
 
-/** Groups on the user's hall (for RS filter tabs). */
+/** Groups on the user's hall (for RS filter tabs), labeled by CGL last name. */
 export async function getHallGroups(user: ActiveUser) {
-  return prisma.group.findMany({
+  const groups = await prisma.group.findMany({
     where: { hallId: user.hallId },
     orderBy: { name: "asc" },
-    select: { id: true, name: true },
+    select: { id: true, name: true, leader: { select: { username: true } } },
   });
+  return groups.map((g) => ({
+    id: g.id,
+    name: groupLabel(g.leader?.username, g.name),
+  }));
 }

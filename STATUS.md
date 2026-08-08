@@ -107,6 +107,59 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 
 ## Changelog
 
+### 8/8/2026 (post-testing tweaks — batch 4)
+1. **Removed the tag dropdown** from Spiritual Summaries: gone from the form (`CareNoteForm`), the
+   action + zod schema (`actions/care.ts`), the data layer (`addCareNote` in `care.ts`), and the
+   timeline badge (`CareTimeline`). The `CareNoteTag` enum + `tag` column stay in the schema (unused,
+   avoids a migration).
+2. **Removed 1-on-1s entirely** (Spiritual Summaries cover it): deleted `/one-on-ones`, `OneOnOneRoster`,
+   `lib/oneonone.ts`, `lib/actions/oneonone.ts`, the `OneOnOne` model (pushed), and the More tile.
+3. **Prayer Requests** — a one-way channel up the chain (Student → CGL → RS; RS receives only):
+   - Schema: `PrayerRequest` model + `PrayerAudience { CGL, RS }` (audience-based visibility, no
+     recipientId — handles multiple RSs cleanly). Pushed via `prisma db push`.
+   - `lib/prayer.ts` (`getPrayerData`, `submitPrayerRequest`), `lib/actions/prayer.ts`,
+     `PrayerRequestForm`, role-aware `/prayer` page. All hall-scoped; a CGL only sees their own guys'
+     requests (author's `groupId` ∈ their led groups).
+4. **Nav restructure:** `Prayer` (HandHeart icon) added to all three navbars + a Prayer Requests Home
+   tile for students. **Attendance moved off** the RS & CGL navbars **to the top of their More pages**
+   (RS → /attendance, CGL → /group). Student navbar: Home · Prayer · Campcom · Verse · Resources.
+- Build + typecheck green. Verified full round-trip in browser (student sends → CGL receives + sends up
+  → RS receives), all navbars, More pages, no console errors. NOTE: found demo `student1` had no group
+  (`groupId: null`) so requests had nowhere to go — assigned to Group 1 to test; real halls assign via
+  the draft board. Regenerating the Prisma client required stopping the dev server (it locks the query
+  engine DLL on Windows → EPERM on `prisma generate`).
+
+### 8/6/2026 (post-testing tweaks — batch 3)
+1. Removed "Hey" from the Home greeting (just the name now).
+2. Sign out back on Home for all roles; removed the Sign-out item from More (reverts batch-2 #8).
+3. Groups now display as the CGL's last name ("Cobb's Group") via `groupLabel()` in names.ts, applied
+   everywhere (draft, attendance tabs, /group, care, people, hub, trends). Derived from the current
+   leader (no stale names). NOTE: demo CGLs share surnames so labels repeat; real halls will be unique.
+4. Campcom Notes → **LEAD** for CGL & RS (nav + tiles); students still see **Campcom Notes**.
+5. Added **Summaries** to the CGL bottom navbar; removed the **Resources** tile from Home (all roles —
+   still reachable via nav/More).
+6. Removed **Beacon** from the RS More page.
+- Build + typecheck green; verified CGL + RS in browser. No console errors.
+
+### 8/6/2026 (post-testing tweaks — batch 2)
+1. Notes box (`NotesTextarea`) now supports Tab/Shift+Tab indent + Enter-continues-bullets; used in Campcom Notes editor.
+2. `BackButton` in the app layout (top-left, all pages except Home) — uses history.back().
+3. CGL Picker already auto-includes new CGLs (wheel = LEADER role; "Make CGL" sets it). Confirmed.
+4. 1-on-1s now biweekly (nudge if not met in 14 days); copy "Meet each guy every 2 weeks."
+5. Removed "Quick links" from Home (+ retired the resource pin toggle, now pointless).
+6. Removed Hub from CGL nav (taskbar + Home + More). `/hub` is now RS-only ("CGL Status").
+7. Renamed CGL "My Group" → **Attendance** (nav/tile). **Auto-weekly attendance:** `getCurrentWeek`
+   now auto-creates the current calendar week (anchored to Wednesday, ET) with a "Passage TBD"
+   placeholder, so a new week starts with no one checked. NOTE: Hall 2 demo has weeks pre-seeded
+   through Sep 23, so the reset only shows once those pass; real halls roll fresh each Wednesday.
+8. More page is now a **list** (not boxes), with **Sign out** as a list item. Home keeps Sign out only
+   for students (they have no More tab).
+9. Renamed "Care Notes" → **Spiritual Summaries** (nav "Summaries", tiles/pages/headings).
+10. Renamed "Notes" → **Campcom Notes** (nav "Campcom", tiles/heading).
+- Build + typecheck green; verified in browser (taskbars, tiles, More list, bullets, back button,
+  biweekly copy, picker, renames). Left unused exports (getCglHub, getPinnedResources, pin actions)
+  and the possibleIR column — harmless, can prune later.
+
 ### 8/6/2026 (post-testing tweaks — batch 1)
 - Removed "Liberty University · Resident Life" line from the landing page.
 - Removed the **"Flag as possible IR"** feature from the UI: checkbox on the care-note form, the

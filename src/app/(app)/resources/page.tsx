@@ -1,10 +1,7 @@
-import { ExternalLink, Pin, PinOff, Trash2 } from "lucide-react";
+import { ExternalLink, Trash2 } from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
 import { getResources } from "@/lib/resources";
-import {
-  togglePinAction,
-  deleteResourceAction,
-} from "@/lib/actions/resources";
+import { deleteResourceAction } from "@/lib/actions/resources";
 import { ResourceAddForm } from "@/components/ResourceAddForm";
 
 export default async function ResourcesPage() {
@@ -42,13 +39,7 @@ export default async function ResourcesPage() {
                 className="flex flex-1 items-center justify-between gap-2 active:opacity-70"
               >
                 <div className="min-w-0">
-                  <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                    {r.pinned && (
-                      <Pin
-                        className="h-3 w-3 text-flock-600"
-                        aria-label="Pinned"
-                      />
-                    )}
+                  <p className="text-sm font-medium text-foreground">
                     {r.label}
                   </p>
                   <p className="truncate text-xs text-muted">{r.url}</p>
@@ -60,32 +51,16 @@ export default async function ResourcesPage() {
               </a>
 
               {isAdmin && (
-                <div className="flex shrink-0 items-center gap-1">
-                  <form action={togglePinAction}>
-                    <input type="hidden" name="id" value={r.id} />
-                    <button
-                      type="submit"
-                      aria-label={r.pinned ? "Unpin" : "Pin"}
-                      className="rounded-lg p-1.5 text-muted hover:bg-flock-100 hover:text-flock-700"
-                    >
-                      {r.pinned ? (
-                        <PinOff className="h-4 w-4" />
-                      ) : (
-                        <Pin className="h-4 w-4" />
-                      )}
-                    </button>
-                  </form>
-                  <form action={deleteResourceAction}>
-                    <input type="hidden" name="id" value={r.id} />
-                    <button
-                      type="submit"
-                      aria-label="Delete"
-                      className="rounded-lg p-1.5 text-muted hover:bg-absent/10 hover:text-absent"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </form>
-                </div>
+                <form action={deleteResourceAction} className="shrink-0">
+                  <input type="hidden" name="id" value={r.id} />
+                  <button
+                    type="submit"
+                    aria-label="Delete"
+                    className="rounded-lg p-1.5 text-muted hover:bg-absent/10 hover:text-absent"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </form>
               )}
             </li>
           ))}

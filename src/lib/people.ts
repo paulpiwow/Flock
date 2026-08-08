@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import type { ActiveUser } from "@/lib/auth";
-import { byLastName } from "@/lib/names";
+import { byLastName, groupLabel } from "@/lib/names";
 
 /**
  * People & roles management (RS only, hall-scoped). Promote a student to CGL,
@@ -46,16 +46,20 @@ export async function getPeople(user: ActiveUser) {
     }),
     prisma.user.findMany({
       where: { hallId: user.hallId, role: "MEMBER", isActive: true },
-      select: { id: true, username: true, group: { select: { name: true } } },
+      select: {
+        id: true,
+        username: true,
+        group: { select: { name: true, leader: { select: { username: true } } } },
+      },
     }),
     prisma.group.findMany({
       where: { hallId: user.hallId },
-      select: { id: true, name: true, leaderId: true },
+      select: { id: true, leaderId: true },
     }),
   ]);
 
-  const groupByLeader = new Map(
-    groups.filter((g) => g.leaderId).map((g) => [g.leaderId as string, g.name]),
+  const leadsAGroup = new Set(
+    groups.filter((g) => g.leaderId).map((g) => g.leaderId as string),
   );
 
   return {
@@ -63,10 +67,20 @@ export async function getPeople(user: ActiveUser) {
       .map((a) => ({ id: a.id, username: a.username }))
       .sort(byLastName),
     cgls: leaders
-      .map((l) => ({ id: l.id, username: l.username, groupName: groupByLeader.get(l.id) ?? null }))
+      .map((l) => ({
+        id: l.id,
+        username: l.username,
+        groupName: leadsAGroup.has(l.id) ? groupLabel(l.username) : null,
+      }))
       .sort(byLastName),
     students: students
-      .map((s) => ({ id: s.id, username: s.username, groupName: s.group?.name ?? null }))
+      .map((s) => ({
+        id: s.id,
+        username: s.username,
+        groupName: s.group
+          ? groupLabel(s.group.leader?.username, s.group.name)
+          : null,
+      }))
       .sort(byLastName),
   };
 }
@@ -80,14 +94,17 @@ export async function promoteToCgl(user: ActiveUser, studentId: string) {
   });
   if (!student) throw new Error("Student not found on this hall.");
 
-  const first = student.username.split(/\s+/)[0] || student.username;
   await prisma.$transaction([
     prisma.user.update({
       where: { id: student.id },
       data: { role: "LEADER", groupId: null },
     }),
     prisma.group.create({
-      data: { hallId: user.hallId, name: `${first}'s Group`, leaderId: student.id },
+      data: {
+        hallId: user.hallId,
+        name: groupLabel(student.username),
+        leaderId: student.id,
+      },
     }),
   ]);
 }

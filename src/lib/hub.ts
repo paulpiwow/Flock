@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
 import { getCurrentWeek } from "@/lib/attendance";
-import { byLastName } from "@/lib/names";
+import { byLastName, groupLabel } from "@/lib/names";
 
 /**
  * CGL Hub — everything a CGL is responsible for, derived from real data:
@@ -91,7 +91,7 @@ export async function getRsHubOverview(user: ActiveUser): Promise<CglStatus[]> {
     ]);
     out.push({
       groupId: g.id,
-      groupName: g.name,
+      groupName: groupLabel(g.leader?.username, g.name),
       leaderName: g.leader?.username ?? null,
       submitted,
       careGapCount: gaps.size,

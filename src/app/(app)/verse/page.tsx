@@ -81,7 +81,7 @@ export default async function VersePage() {
 
       <div>
         <h2 className="mb-2 text-sm font-semibold text-foreground">
-          {led ? `${led.name}'s verses` : "Your group's verses"}
+          Your group&apos;s verses
         </h2>
         {led ? (
           <VerseManager

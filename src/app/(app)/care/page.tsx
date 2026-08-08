@@ -8,6 +8,7 @@ import {
   getHallStudentsWithNotes,
 } from "@/lib/care";
 import { BEACON_URL } from "@/lib/constants";
+import { groupLabel } from "@/lib/names";
 
 function fmtDate(d: Date | null) {
   if (!d) return "No notes yet";
@@ -27,9 +28,12 @@ export default async function CarePage() {
     return (
       <section className="space-y-4">
         <div>
-          <h1 className="text-xl font-bold text-flock-800">Care Notes</h1>
+          <h1 className="text-xl font-bold text-flock-800">
+            Spiritual Summaries
+          </h1>
           <p className="text-sm text-muted">
-            {group ? group.name : "Your group"} · tap a guy to add a note
+            {group ? groupLabel(user.username) : "Your group"} · tap a guy to
+            add a note
           </p>
         </div>
         <ul className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
@@ -65,7 +69,7 @@ export default async function CarePage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-xl font-bold text-flock-800">Care Notes</h1>
+      <h1 className="text-xl font-bold text-flock-800">Spiritual Summaries</h1>
 
       {/* Admin-only Beacon link */}
       <a
@@ -91,7 +95,7 @@ export default async function CarePage() {
           Recent activity
         </h2>
         {recent.length === 0 ? (
-          <p className="text-sm text-muted">No care notes yet.</p>
+          <p className="text-sm text-muted">No summaries yet.</p>
         ) : (
           <ul className="space-y-2">
             {recent.map((n) => (

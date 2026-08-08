@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
-import { byLastName } from "@/lib/names";
+import { byLastName, groupLabel } from "@/lib/names";
 
 /**
  * Community Group Maker data layer. The RS runs the "draft": assigning each guy
@@ -39,7 +39,7 @@ export async function getDraftBoard(user: ActiveUser) {
   return {
     groups: groups.map((g) => ({
       id: g.id,
-      name: g.name,
+      name: groupLabel(g.leader?.username, g.name),
       leaderName: g.leader?.username ?? null,
       members: [...g.members].sort(byLastName),
     })),

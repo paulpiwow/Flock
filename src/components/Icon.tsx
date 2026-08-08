@@ -4,6 +4,7 @@ import {
   CheckSquare,
   Disc3,
   ExternalLink,
+  HandHeart,
   HeartHandshake,
   Home,
   LayoutGrid,
@@ -34,6 +35,7 @@ const ICONS: Record<string, LucideIcon> = {
   external: ExternalLink,
   "user-round": UserRound,
   calendar: Calendar,
+  prayer: HandHeart,
 };
 
 export function Icon({

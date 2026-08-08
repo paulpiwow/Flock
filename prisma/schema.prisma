@@ -36,6 +36,11 @@ enum VerseAudience {
   GROUP // CGL -> their group's members
 }
 
+enum PrayerAudience {
+  CGL // a student's request, for their CGL
+  RS // a CGL's request, for the hall's RS(s)
+}
+
 /// A hall (~70 men). The tenant boundary — no cross-hall visibility.
 model Hall {
   id        String   @id @default(cuid())
@@ -52,7 +57,7 @@ model Hall {
   careNotes        CareNote[]
   resources        Resource[]
   memoryVerses     MemoryVerse[]
-  oneOnOnes        OneOnOne[]
+  prayerRequests   PrayerRequest[]
 }
 
 /// A person on the hall. `id` mirrors the Supabase auth user id.
@@ -92,9 +97,8 @@ model User {
   // Memory verses this user assigned (RS -> CGLs, or CGL -> their group).
   versesAuthored MemoryVerse[] @relation("VerseAuthor")
 
-  // 1-on-1 meetings: as the guy met with, and as the CGL who logged it.
-  oneOnOnesAbout OneOnOne[] @relation("OneOnOneStudent")
-  oneOnOnesLed   OneOnOne[] @relation("OneOnOneLeader")
+  // Prayer requests this user wrote (student -> CGL, or CGL -> RS).
+  prayerRequests PrayerRequest[] @relation("PrayerAuthor")
 
   @@index([hallId])
   @@index([groupId])
@@ -246,24 +250,24 @@ model CareNote {
   @@index([semester])
 }
 
-/// A logged 1-on-1 meeting between a CGL and one of their guys. A light tracker
-/// (not a rigid calendar) — "have I met with each guy this cycle?"
-model OneOnOne {
-  id        String   @id @default(cuid())
-  metAt     DateTime @default(now())
-  createdAt DateTime @default(now())
+/// A prayer request written by one person for another tier to see:
+///   audience CGL — a student's request, seen by their group's CGL.
+///   audience RS  — a CGL's request, seen by the hall's RS(s).
+model PrayerRequest {
+  id        String         @id @default(cuid())
+  body      String
+  audience  PrayerAudience
+  createdAt DateTime       @default(now())
 
   hall   Hall   @relation(fields: [hallId], references: [id])
   hallId String
 
-  student   User   @relation("OneOnOneStudent", fields: [studentId], references: [id], onDelete: Cascade)
-  studentId String
-
-  leader   User?   @relation("OneOnOneLeader", fields: [leaderId], references: [id])
-  leaderId String?
+  author   User   @relation("PrayerAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
 
   @@index([hallId])
-  @@index([studentId])
+  @@index([authorId])
+  @@index([audience])
 }
 
 /// RS-editable link the hall always needs (Enduring Word, sign-out form, portals).

@@ -54,14 +54,10 @@ export async function getStudentCareNotes(user: ActiveUser, studentId: string) {
   return { student, notes };
 }
 
-/** Add a dated care note. Enforces access; flags possible-IR for RS review. */
+/** Add a dated summary note. Enforces access. */
 export async function addCareNote(
   user: ActiveUser,
-  input: {
-    studentId: string;
-    body: string;
-    tag: "PRAYER" | "FOLLOW_UP" | null;
-  },
+  input: { studentId: string; body: string },
 ) {
   await requireStudentAccess(user, input.studentId);
   const semester = await currentSemester(user.hallId);
@@ -72,7 +68,6 @@ export async function addCareNote(
       studentId: input.studentId,
       authorId: user.id,
       body: input.body.trim(),
-      tag: input.tag,
       semester,
     },
   });
