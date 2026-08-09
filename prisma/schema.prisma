@@ -68,6 +68,10 @@ model User {
   role      Role     @default(MEMBER)
   // False disables access without deleting history (e.g. end-of-year, removed).
   isActive  Boolean  @default(true)
+  // When the hall's RS approved this signup. Null = pending approval (no access
+  // yet). RSs (ADMIN) are exempt from the gate. This is the real membership gate
+  // now that email confirmation is off.
+  approvedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -88,5 +88,8 @@ export async function requireActiveUser(): Promise<ActiveUser> {
   const user = await requireUser();
   if (!user.isActive) redirect("/");
   if (!user.hall || !user.hallId) redirect("/join");
+  // Bound to a hall but the RS hasn't approved them yet — no access. RSs (ADMIN)
+  // are the approvers, so they're exempt from the gate.
+  if (user.role !== "ADMIN" && !user.approvedAt) redirect("/pending");
   return user as ActiveUser;
 }

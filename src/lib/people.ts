@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import type { ActiveUser } from "@/lib/auth";
 import { byLastName, groupLabel } from "@/lib/names";
+import { deleteAuthUser } from "@/lib/supabase/admin";
 
 /**
  * People & roles management (RS only, hall-scoped). Promote a student to CGL,
@@ -35,22 +36,43 @@ async function freeLedGroups(
 
 export async function getPeople(user: ActiveUser) {
   assertAdmin(user);
-  const [admins, leaders, students, groups] = await Promise.all([
+  const [admins, leaders, students, pending, groups] = await Promise.all([
     prisma.user.findMany({
       where: { hallId: user.hallId, role: "ADMIN", isActive: true },
       select: { id: true, username: true },
     }),
     prisma.user.findMany({
-      where: { hallId: user.hallId, role: "LEADER", isActive: true },
+      where: {
+        hallId: user.hallId,
+        role: "LEADER",
+        isActive: true,
+        approvedAt: { not: null },
+      },
       select: { id: true, username: true },
     }),
     prisma.user.findMany({
-      where: { hallId: user.hallId, role: "MEMBER", isActive: true },
+      where: {
+        hallId: user.hallId,
+        role: "MEMBER",
+        isActive: true,
+        approvedAt: { not: null },
+      },
       select: {
         id: true,
         username: true,
         group: { select: { name: true, leader: { select: { username: true } } } },
       },
+    }),
+    // Awaiting the RS's approval (no access yet). Show email so the RS can vet it.
+    prisma.user.findMany({
+      where: {
+        hallId: user.hallId,
+        isActive: true,
+        approvedAt: null,
+        role: { not: "ADMIN" },
+      },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, username: true, email: true },
     }),
     prisma.group.findMany({
       where: { hallId: user.hallId },
@@ -63,6 +85,11 @@ export async function getPeople(user: ActiveUser) {
   );
 
   return {
+    pending: pending.map((p) => ({
+      id: p.id,
+      username: p.username,
+      email: p.email,
+    })),
     admins: admins
       .map((a) => ({ id: a.id, username: a.username }))
       .sort(byLastName),
@@ -83,6 +110,30 @@ export async function getPeople(user: ActiveUser) {
       }))
       .sort(byLastName),
   };
+}
+
+/** RS approves a pending signup on their hall — grants access. */
+export async function approveUser(user: ActiveUser, targetId: string) {
+  assertAdmin(user);
+  const res = await prisma.user.updateMany({
+    where: { id: targetId, hallId: user.hallId, approvedAt: null },
+    data: { approvedAt: new Date() },
+  });
+  if (res.count === 0) throw new Error("Not found or already approved.");
+}
+
+/** RS denies a pending signup — fully deletes the account (app row + login). */
+export async function denyUser(user: ActiveUser, targetId: string) {
+  assertAdmin(user);
+  if (targetId === user.id) throw new Error("You can't remove yourself.");
+  const target = await prisma.user.findFirst({
+    where: { id: targetId, hallId: user.hallId, approvedAt: null },
+    select: { id: true },
+  });
+  if (!target) throw new Error("Pending person not found on this hall.");
+  // Remove their login too (best-effort — needs SUPABASE_SERVICE_ROLE_KEY).
+  await deleteAuthUser(target.id).catch(() => {});
+  await prisma.user.delete({ where: { id: target.id } });
 }
 
 /** Promote a student to CGL and give them a new group to lead. */

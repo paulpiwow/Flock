@@ -109,6 +109,23 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 
 ## Changelog
 
+### 8/9/2026 (RS approval gate — replaces email confirmation)
+- New authorization model: **email confirmation off + RS approves each signup.** A student signs up
+  with `@liberty.edu` + hall code → lands **pending** (no access) → their RS approves or denies on the
+  People page. A human who knows the roster is a better gate than email verification for a dorm, and it
+  sidesteps the Microsoft-junk deliverability problem entirely.
+- Schema: `User.approvedAt DateTime?` (null = pending; RSs/ADMIN exempt). Pushed; existing users
+  grandfathered to approved.
+- Guard: `requireActiveUser` redirects hall-bound-but-unapproved non-admins to a new **/pending** screen.
+- People page: **Pending approval** section at top (shows username + email) with **Approve** / **Deny**.
+  Deny fully deletes the account — app row always, and the Supabase **auth login too** via a service-role
+  admin client (`src/lib/supabase/admin.ts`, `deleteAuthUser`). `set-role.js` now also stamps `approvedAt`.
+- **Config still needed (Paul):** (1) turn **Confirm email OFF** in Supabase; (2) add
+  `SUPABASE_SERVICE_ROLE_KEY` to `.env` + Vercel (Settings → API → service_role) so Deny also removes the
+  login — without it, Deny removes the app record but the login lingers (they'd reappear as pending).
+- Verified: prod build green (/pending + /people compile). Couldn't click-test (no test login post-wipe);
+  test with a throwaway signup after deploy.
+
 ### 8/8/2026 (copy + notifications UX)
 - Login/signup tagline shortened to **"Shepherding The Hall"**.
 - `NotificationsToggle` now takes a `variant`: **prompt** (Home — only shows while off, disappears once

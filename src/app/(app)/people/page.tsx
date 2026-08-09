@@ -1,11 +1,43 @@
 import { redirect } from "next/navigation";
-import { ArrowDownRight, UserPlus } from "lucide-react";
+import { ArrowDownRight, Check, UserPlus, X } from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
 import { getPeople } from "@/lib/people";
 import {
   promoteToCglAction,
   demoteToStudentAction,
+  approveUserAction,
+  denyUserAction,
 } from "@/lib/actions/people";
+
+function Approve({ id }: { id: string }) {
+  return (
+    <form action={approveUserAction}>
+      <input type="hidden" name="id" value={id} />
+      <button
+        type="submit"
+        className="flex items-center gap-1 rounded-lg border border-flock-300 bg-flock-50 px-2.5 py-1.5 text-xs font-semibold text-flock-800 hover:bg-flock-100"
+      >
+        <Check className="h-3.5 w-3.5" aria-hidden />
+        Approve
+      </button>
+    </form>
+  );
+}
+
+function Deny({ id }: { id: string }) {
+  return (
+    <form action={denyUserAction}>
+      <input type="hidden" name="id" value={id} />
+      <button
+        type="submit"
+        className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted hover:bg-absent/10 hover:text-absent"
+      >
+        <X className="h-3.5 w-3.5" aria-hidden />
+        Deny
+      </button>
+    </form>
+  );
+}
 
 function MakeCgl({ id }: { id: string }) {
   return (
@@ -61,7 +93,7 @@ export default async function PeoplePage() {
   const user = await requireActiveUser();
   if (user.role !== "ADMIN") redirect("/home");
 
-  const { admins, cgls, students } = await getPeople(user);
+  const { pending, admins, cgls, students } = await getPeople(user);
 
   return (
     <section className="space-y-6">
@@ -71,6 +103,27 @@ export default async function PeoplePage() {
           Manage who&apos;s an RS, a CGL, or a student on {user.hall.name}.
         </p>
       </div>
+
+      {/* Pending approval — new signups awaiting the RS's OK */}
+      {pending.length > 0 && (
+        <div>
+          <h2 className="mb-2 text-sm font-semibold text-foreground">
+            Pending approval ({pending.length})
+          </h2>
+          <ul className="divide-y divide-border overflow-hidden rounded-card border border-flock-300 bg-surface">
+            {pending.map((p) => (
+              <Row key={p.id} name={p.username} subtitle={p.email}>
+                <Approve id={p.id} />
+                <Deny id={p.id} />
+              </Row>
+            ))}
+          </ul>
+          <p className="mt-2 text-[11px] text-muted">
+            New signups can&apos;t get in until you approve them. Deny permanently
+            deletes the account.
+          </p>
+        </div>
+      )}
 
       {/* Resident Shepherds */}
       <div>

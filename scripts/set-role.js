@@ -40,7 +40,12 @@ async function main() {
 
   const updated = await prisma.user.update({
     where: { email },
-    data: { role, groupId: role === "MEMBER" ? user.groupId : null },
+    data: {
+      role,
+      groupId: role === "MEMBER" ? user.groupId : null,
+      // A promoted account is vouched-for — make sure it's approved too.
+      approvedAt: user.approvedAt ?? new Date(),
+    },
     select: { username: true, email: true, role: true, hall: { select: { name: true } } },
   });
 
