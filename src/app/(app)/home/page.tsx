@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireActiveUser } from "@/lib/auth";
 import { HOME_TILES } from "@/lib/features";
 import { ROLE_LABEL, type Role } from "@/lib/roles";
@@ -78,6 +79,16 @@ export default async function HomePage() {
 
       {/* Launcher grid */}
       <FeatureGrid tiles={HOME_TILES[role]} />
+
+      {/* Students have no More tab — give them a way back to notification settings. */}
+      {role === "MEMBER" && (
+        <Link
+          href="/notifications"
+          className="block text-center text-xs font-medium text-muted underline-offset-2 hover:text-flock-700 hover:underline"
+        >
+          Notification settings
+        </Link>
+      )}
     </section>
   );
 }
