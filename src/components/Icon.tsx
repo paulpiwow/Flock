@@ -1,4 +1,5 @@
 import {
+  Bell,
   BookOpen,
   Calendar,
   CheckSquare,
@@ -36,6 +37,7 @@ const ICONS: Record<string, LucideIcon> = {
   "user-round": UserRound,
   calendar: Calendar,
   prayer: HandHeart,
+  bell: Bell,
 };
 
 export function Icon({

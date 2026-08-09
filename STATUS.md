@@ -109,6 +109,13 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 
 ## Changelog
 
+### 8/8/2026 (copy + notifications UX)
+- Login/signup tagline shortened to **"Shepherding The Hall"**.
+- `NotificationsToggle` now takes a `variant`: **prompt** (Home — only shows while off, disappears once
+  on) and **settings** (always shows on/off). New `/notifications` page (settings variant) + a
+  **Notifications** item on the RS/CGL More page. Home keeps the prompt variant.
+- NOTE: students have no More page, so they can enable from the Home prompt but can't disable in-app yet.
+
 ### 8/8/2026 (web push notifications — event-driven)
 - Added Web Push (VAPID / `web-push`). Two triggers, both fire from existing server code (no cron):
   **prayer request** → the recipient tier (student→their CGL, CGL→hall RSs); **new memory verse** →

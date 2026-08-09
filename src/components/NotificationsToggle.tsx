@@ -21,7 +21,16 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
 
 type State = "hidden" | "off" | "on" | "denied" | "busy";
 
-export function NotificationsToggle() {
+/**
+ * variant "prompt"  → Home nudge: only shows while notifications are OFF, then
+ *                     disappears once the user turns them on.
+ * variant "settings" → More page: always shows the on/off control.
+ */
+export function NotificationsToggle({
+  variant = "prompt",
+}: {
+  variant?: "prompt" | "settings";
+}) {
   const [state, setState] = useState<State>("hidden");
   const [needsInstall, setNeedsInstall] = useState(false);
 
@@ -95,7 +104,16 @@ export function NotificationsToggle() {
     }
   }
 
-  if (state === "hidden") return null;
+  if (state === "hidden") {
+    return variant === "settings" ? (
+      <p className="rounded-card border border-dashed border-border bg-flock-50 px-4 py-6 text-center text-sm text-muted">
+        Notifications aren&apos;t supported on this device or browser.
+      </p>
+    ) : null;
+  }
+
+  // On Home, disappear once notifications are on (or blocked) — only nudge when off.
+  if (variant === "prompt" && state !== "off" && state !== "busy") return null;
 
   return (
     <div className="flex items-center justify-between gap-3 rounded-card border border-border bg-surface p-4 shadow-sm">

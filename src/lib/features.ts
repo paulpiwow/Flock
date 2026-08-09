@@ -41,11 +41,13 @@ export const MORE_TILES: Record<Role, FeatureTile[]> = {
     { label: "People", href: "/people", icon: "user-round", desc: "Promote CGLs" },
     { label: "Group Maker", href: "/draft", icon: "shuffle", desc: "Assign groups" },
     { label: "Resources", href: "/resources", icon: "link", desc: "Handy links" },
+    { label: "Notifications", href: "/notifications", icon: "bell", desc: "Turn push on/off" },
   ],
   LEADER: [
     { label: "Attendance", href: "/group", icon: "users", desc: "Your ~7 guys" },
     { label: "CGL Picker", href: "/picker", icon: "disc", desc: "Spin the wheel" },
     { label: "Resources", href: "/resources", icon: "link", desc: "Handy links" },
+    { label: "Notifications", href: "/notifications", icon: "bell", desc: "Turn push on/off" },
   ],
   MEMBER: [],
 };

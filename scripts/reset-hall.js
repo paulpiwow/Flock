@@ -1,7 +1,8 @@
 /*
  * Wipe all data for one hall (users, groups, attendance, care notes, verses,
- * 1-on-1s, weeks, notes, resources) but KEEP the hall itself (name + join code),
- * so it's ready for fresh real signups. Use this to clear demo data after testing.
+ * prayer requests, push subscriptions, weeks, notes, resources) but KEEP the hall
+ * itself (name + join code), so it's ready for fresh real signups. Use this to
+ * clear demo data after testing.
  *
  * Usage:
  *   node scripts/reset-hall.js <name|joinCode>            # DRY RUN (shows counts)
@@ -49,7 +50,8 @@ async function main() {
     attendance: await prisma.attendanceRecord.count({ where: { hallId } }),
     careNotes: await prisma.careNote.count({ where: { hallId } }),
     memoryVerses: await prisma.memoryVerse.count({ where: { hallId } }),
-    oneOnOnes: await prisma.oneOnOne.count({ where: { hallId } }),
+    prayerRequests: await prisma.prayerRequest.count({ where: { hallId } }),
+    pushSubs: await prisma.pushSubscription.count({ where: { user: { hallId } } }),
     resources: await prisma.resource.count({ where: { hallId } }),
   };
 
@@ -63,10 +65,11 @@ async function main() {
 
   // FK-safe order; the Hall row itself is preserved.
   await prisma.$transaction([
-    prisma.oneOnOne.deleteMany({ where: { hallId } }),
     prisma.memoryVerse.deleteMany({ where: { hallId } }),
     prisma.careNote.deleteMany({ where: { hallId } }),
     prisma.attendanceRecord.deleteMany({ where: { hallId } }),
+    prisma.prayerRequest.deleteMany({ where: { hallId } }),
+    prisma.pushSubscription.deleteMany({ where: { user: { hallId } } }),
     prisma.resource.deleteMany({ where: { hallId } }),
     prisma.weeklyNote.deleteMany({ where: { week: { hallId } } }),
     prisma.week.deleteMany({ where: { hallId } }),

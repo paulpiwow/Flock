@@ -19,11 +19,7 @@ export default async function LandingPage() {
           <h1 className="mt-5 text-3xl font-bold tracking-tight text-flock-800">
             Flock
           </h1>
-          <p className="mt-2 text-sm text-muted">
-            Shepherding the hall — attendance, spiritual summaries, and weekly
-            Scripture,
-            all in one place.
-          </p>
+          <p className="mt-2 text-sm text-muted">Shepherding The Hall</p>
         </div>
 
         {/* Login / Sign up */}
