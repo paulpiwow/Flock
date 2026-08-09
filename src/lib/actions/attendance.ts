@@ -30,7 +30,12 @@ export async function confirmAttendanceAction(
     return { error: e instanceof Error ? e.message : "Could not save." };
   }
 
+  // These all read from confirmed attendance — refresh them too, or they'd
+  // keep serving stale numbers after a roster change.
   revalidatePath("/group");
   revalidatePath("/attendance");
+  revalidatePath("/trends");
+  revalidatePath("/hub");
+  revalidatePath("/home");
   return { ok: true };
 }

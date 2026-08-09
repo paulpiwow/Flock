@@ -107,6 +107,13 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 
 ## Changelog
 
+### 8/8/2026 (bug fix — Trends/CGL Status didn't refresh after attendance change)
+- `confirmAttendanceAction` only revalidated `/group` and `/attendance`, so **Trends** (`/trends`) and
+  **CGL Status** (`/hub`) — both derived live from confirmed attendance — kept serving cached numbers
+  after a roster change. Added `revalidatePath` for `/trends`, `/hub`, and `/home`. Trends were never
+  hardcoded; this was purely a missing cache invalidation.
+- Verified: changed paul's Group W1 from 2/7 → 7/7; the W1 bar moved 69% → 77% on the RS Trends page.
+
 ### 8/8/2026 (remove in-app "Make RS")
 - Removed the **Make RS** button from the People page and its `promoteToRsAction` / `promoteToRs`
   code path. RS accounts are now provisioned the same way for every hall: the new RS signs up with
