@@ -66,7 +66,9 @@ A PWA for shepherding a hall: attendance, care notes, weekly Scripture, and the 
     network-first navigations, SWR assets, offline fallback), `/offline` page, prod-only SW registration,
     `InstallPrompt` (Android button + iOS Add-to-Home hint, dismissible). Verified via prod build:
     SW active, manifest valid, offline precached, 0 errors. _(8/6)_
-  - [ ] Web push notifications (memorize verse / submit attendance / RS roundup).
+  - [~] Web push notifications — **event-driven done** (prayer request → recipient; new memory verse
+    → audience) via VAPID/`web-push`. Scheduled ones (attendance reminder, RS roundup) intentionally
+    skipped for v1. Needs `VAPID_*` env vars in Vercel + testing on real phones.
   - [x] **Deployed to Vercel** (8/6): `flock-six-self.vercel.app`. Prod build green after adding
     `postinstall: prisma generate`. First 500 was env vars pasted WITH quotes — fixed (values must be
     unquoted in Vercel), redeployed clean.
@@ -106,6 +108,19 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 - [ ] Real students sign up with their hall's code. Done.
 
 ## Changelog
+
+### 8/8/2026 (web push notifications — event-driven)
+- Added Web Push (VAPID / `web-push`). Two triggers, both fire from existing server code (no cron):
+  **prayer request** → the recipient tier (student→their CGL, CGL→hall RSs); **new memory verse** →
+  the audience (RS→CGLs, CGL→their group's members). Sends are best-effort and never block the action.
+- Pieces: `PushSubscription` model (pushed); `src/lib/push.ts` (send helper, prunes dead subs on 404/410);
+  `src/lib/actions/push.ts` (save/remove subscription); `NotificationsToggle` on Home (permission +
+  subscribe, iOS "add to home screen first" hint, hides where unsupported); `sw.js` `push` +
+  `notificationclick` handlers (cache bumped v1→v2).
+- **Requires 3 env vars** (local `.env` set; add to Vercel, UNQUOTED): `NEXT_PUBLIC_VAPID_PUBLIC_KEY`,
+  `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`. Without them the toggle stays hidden and sends no-op.
+- Verified: prod build green; toggle renders on Home and reflects permission state; no console errors.
+  Real delivery must be tested on actual phones (SW is prod-only; iOS needs the PWA installed).
 
 ### 8/8/2026 (bug fix — Trends/CGL Status didn't refresh after attendance change)
 - `confirmAttendanceAction` only revalidated `/group` and `/attendance`, so **Trends** (`/trends`) and

@@ -100,6 +100,9 @@ model User {
   // Prayer requests this user wrote (student -> CGL, or CGL -> RS).
   prayerRequests PrayerRequest[] @relation("PrayerAuthor")
 
+  // Web-push subscriptions (one per device that opted in).
+  pushSubscriptions PushSubscription[]
+
   @@index([hallId])
   @@index([groupId])
 }
@@ -275,6 +278,21 @@ enum ResourceAudience {
   ADMIN // just the RS(s)
   LEADERS // the RS(s) + CGLs
   ALL // everyone on the hall (incl. students)
+}
+
+/// A device's web-push subscription (Web Push API). One row per browser/device
+/// that opted in; pruned automatically when the push service reports it's gone.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String // client public key (from the browser subscription)
+  auth      String // client auth secret
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@index([userId])
 }
 
 /// RS-editable link the hall always needs (sign-out form, portals, etc.).

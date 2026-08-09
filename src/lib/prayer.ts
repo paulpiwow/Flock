@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
 import type { PrayerAudience } from "@prisma/client";
 import { displayLastName } from "@/lib/names";
+import { sendPushToUsers } from "@/lib/push";
 
 /**
  * Prayer Requests — a one-way channel up the shepherding chain:
@@ -104,7 +105,7 @@ export async function submitPrayerRequest(user: ActiveUser, body: string) {
   const trimmed = body.trim();
   if (!trimmed) throw new Error("Write a request first.");
 
-  return prisma.prayerRequest.create({
+  const created = await prisma.prayerRequest.create({
     data: {
       hallId: user.hallId,
       authorId: user.id,
@@ -112,4 +113,31 @@ export async function submitPrayerRequest(user: ActiveUser, body: string) {
       body: trimmed,
     },
   });
+
+  // Notify the recipient tier — student's CGL, or the hall's RS(s). Best-effort.
+  try {
+    let recipientIds: string[] = [];
+    if (audience === "CGL" && user.groupId) {
+      const group = await prisma.group.findFirst({
+        where: { id: user.groupId, hallId: user.hallId },
+        select: { leaderId: true },
+      });
+      if (group?.leaderId) recipientIds = [group.leaderId];
+    } else if (audience === "RS") {
+      const admins = await prisma.user.findMany({
+        where: { hallId: user.hallId, role: "ADMIN", isActive: true },
+        select: { id: true },
+      });
+      recipientIds = admins.map((a) => a.id);
+    }
+    await sendPushToUsers(recipientIds, {
+      title: "New prayer request",
+      body: `${user.username} sent a prayer request.`,
+      url: "/prayer",
+    });
+  } catch {
+    /* push is non-fatal */
+  }
+
+  return created;
 }

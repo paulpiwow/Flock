@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
+import { sendPushToUsers } from "@/lib/push";
 
 /**
  * Memory verses, two tiers (hall-scoped, never interpreted):
@@ -68,7 +69,7 @@ export async function addLeaderVerse(
   text: string,
 ) {
   assertAdmin(user);
-  return prisma.memoryVerse.create({
+  const created = await prisma.memoryVerse.create({
     data: {
       hallId: user.hallId,
       audience: "LEADERS",
@@ -77,6 +78,26 @@ export async function addLeaderVerse(
       authorId: user.id,
     },
   });
+
+  // Notify the hall's CGLs. Best-effort.
+  try {
+    const cgls = await prisma.user.findMany({
+      where: { hallId: user.hallId, role: "LEADER", isActive: true },
+      select: { id: true },
+    });
+    await sendPushToUsers(
+      cgls.map((c) => c.id),
+      {
+        title: "New memory verse",
+        body: `${reference.trim()} — from your RS.`,
+        url: "/verse",
+      },
+    );
+  } catch {
+    /* push is non-fatal */
+  }
+
+  return created;
 }
 
 /** CGL (or RS) adds a verse for a group's members. */
@@ -87,7 +108,7 @@ export async function addGroupVerse(
   text: string,
 ) {
   await requireGroupManage(user, groupId);
-  return prisma.memoryVerse.create({
+  const created = await prisma.memoryVerse.create({
     data: {
       hallId: user.hallId,
       audience: "GROUP",
@@ -97,6 +118,26 @@ export async function addGroupVerse(
       authorId: user.id,
     },
   });
+
+  // Notify the group's members. Best-effort.
+  try {
+    const members = await prisma.user.findMany({
+      where: { hallId: user.hallId, groupId, role: "MEMBER", isActive: true },
+      select: { id: true },
+    });
+    await sendPushToUsers(
+      members.map((m) => m.id),
+      {
+        title: "New memory verse",
+        body: `${reference.trim()} — from your CGL.`,
+        url: "/verse",
+      },
+    );
+  } catch {
+    /* push is non-fatal */
+  }
+
+  return created;
 }
 
 /** Delete a verse. LEADERS → RS only; GROUP → the group's CGL or an RS. */

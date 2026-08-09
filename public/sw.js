@@ -2,7 +2,7 @@
 // page. It does NOT cache app data (attendance/care notes) — those always need
 // the network — just the shell + static assets.
 
-const CACHE = "flock-v1";
+const CACHE = "flock-v2";
 const OFFLINE_URL = "/offline";
 const PRECACHE = [OFFLINE_URL, "/manifest.webmanifest", "/icon.svg"];
 
@@ -24,6 +24,45 @@ self.addEventListener("activate", (event) => {
         keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)),
       );
       await self.clients.claim();
+    })(),
+  );
+});
+
+// Web push: show the notification the server sent.
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    payload = {};
+  }
+  const title = payload.title || "Flock";
+  const options = {
+    body: payload.body || "",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    data: { url: payload.url || "/home" },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Tapping a notification: focus an open tab or open the target page.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/home";
+  event.waitUntil(
+    (async () => {
+      const all = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      for (const client of all) {
+        if ("focus" in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(url);
     })(),
   );
 });
