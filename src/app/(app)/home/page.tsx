@@ -48,9 +48,7 @@ export default async function HomePage() {
           <h1 className="text-xl font-bold text-foreground">
             {user.username}
           </h1>
-          <p className="text-sm text-muted">
-            {ROLE_LABEL[role]} · {user.hall.name}
-          </p>
+          <p className="text-sm text-muted">{ROLE_LABEL[role]}</p>
         </div>
       </div>
 
