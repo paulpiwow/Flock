@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
-import { ArrowDownRight, Check, UserPlus, X } from "lucide-react";
+import { ArrowDownRight, Check, Trash2, UserPlus, X } from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
 import { getPeople } from "@/lib/people";
 import {
   promoteToCglAction,
   demoteToStudentAction,
   approveUserAction,
-  denyUserAction,
+  removeUserAction,
 } from "@/lib/actions/people";
 
 function Approve({ id }: { id: string }) {
@@ -26,7 +26,7 @@ function Approve({ id }: { id: string }) {
 
 function Deny({ id }: { id: string }) {
   return (
-    <form action={denyUserAction}>
+    <form action={removeUserAction}>
       <input type="hidden" name="id" value={id} />
       <button
         type="submit"
@@ -34,6 +34,22 @@ function Deny({ id }: { id: string }) {
       >
         <X className="h-3.5 w-3.5" aria-hidden />
         Deny
+      </button>
+    </form>
+  );
+}
+
+function Remove({ id }: { id: string }) {
+  return (
+    <form action={removeUserAction}>
+      <input type="hidden" name="id" value={id} />
+      <button
+        type="submit"
+        aria-label="Remove"
+        className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted hover:bg-absent/10 hover:text-absent"
+      >
+        <Trash2 className="h-3.5 w-3.5" aria-hidden />
+        Remove
       </button>
     </form>
   );
@@ -100,7 +116,7 @@ export default async function PeoplePage() {
       <div>
         <h1 className="text-xl font-bold text-flock-800">People</h1>
         <p className="text-sm text-muted">
-          Manage who&apos;s an RS, a CGL, or a student on {user.hall.name}.
+          Manage who&apos;s an RS, a CGL, or a student.
         </p>
       </div>
 
@@ -170,6 +186,7 @@ export default async function PeoplePage() {
           {students.map((s) => (
             <Row key={s.id} name={s.username} subtitle={s.groupName ?? "No group"}>
               <MakeCgl id={s.id} />
+              <Remove id={s.id} />
             </Row>
           ))}
         </ul>

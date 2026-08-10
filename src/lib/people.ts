@@ -122,18 +122,25 @@ export async function approveUser(user: ActiveUser, targetId: string) {
   if (res.count === 0) throw new Error("Not found or already approved.");
 }
 
-/** RS denies a pending signup — fully deletes the account (app row + login). */
-export async function denyUser(user: ActiveUser, targetId: string) {
+/**
+ * RS removes a non-admin account (pending OR approved) — fully deletes it:
+ * app row + Supabase login. Frees any group they led. Used by both "Deny" on a
+ * pending signup and "Remove" on an approved member (e.g. an accidental approve).
+ */
+export async function removeUser(user: ActiveUser, targetId: string) {
   assertAdmin(user);
   if (targetId === user.id) throw new Error("You can't remove yourself.");
   const target = await prisma.user.findFirst({
-    where: { id: targetId, hallId: user.hallId, approvedAt: null },
+    where: { id: targetId, hallId: user.hallId, role: { not: "ADMIN" } },
     select: { id: true },
   });
-  if (!target) throw new Error("Pending person not found on this hall.");
+  if (!target) throw new Error("Person not found (demote an RS first).");
   // Remove their login too (best-effort — needs SUPABASE_SERVICE_ROLE_KEY).
   await deleteAuthUser(target.id).catch(() => {});
-  await prisma.user.delete({ where: { id: target.id } });
+  await prisma.$transaction(async (tx) => {
+    await freeLedGroups(tx, user.hallId, target.id);
+    await tx.user.delete({ where: { id: target.id } });
+  });
 }
 
 /** Promote a student to CGL and give them a new group to lead. */

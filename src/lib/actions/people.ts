@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireActiveUser } from "@/lib/auth";
-import { promoteToCgl, demoteToStudent, approveUser, denyUser } from "@/lib/people";
+import { promoteToCgl, demoteToStudent, approveUser, removeUser } from "@/lib/people";
 
 export async function promoteToCglAction(formData: FormData): Promise<void> {
   const user = await requireActiveUser();
@@ -23,10 +23,10 @@ export async function approveUserAction(formData: FormData): Promise<void> {
   revalidatePath("/people");
 }
 
-export async function denyUserAction(formData: FormData): Promise<void> {
+export async function removeUserAction(formData: FormData): Promise<void> {
   const user = await requireActiveUser();
   const id = String(formData.get("id") ?? "");
-  if (id) await denyUser(user, id);
+  if (id) await removeUser(user, id);
   revalidatePath("/people");
 }
 
