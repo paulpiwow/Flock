@@ -6,6 +6,14 @@ import { cn } from "@/lib/cn";
 
 const initial: CareNoteState = {};
 
+// Prompts the CGL to cover all six areas so summaries stay specific.
+const PLACEHOLDER = `Worship — Church / Campcom engagement
+Scripture — Quiet time habits
+Prayer — Personal prayer habit
+Community — CG attendance, hall relationships
+Service — CSER
+Other — Anything else`;
+
 export function CareNoteForm({ studentId }: { studentId: string }) {
   const [state, formAction, pending] = useActionState(
     addCareNoteAction,
@@ -31,10 +39,10 @@ export function CareNoteForm({ studentId }: { studentId: string }) {
       <textarea
         id="body"
         name="body"
-        rows={3}
+        rows={8}
         required
-        placeholder="A check-in, prayer request, hard conversation, encouragement…"
-        className="w-full resize-y rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-muted/60 focus:border-flock-600 focus:ring-2 focus:ring-flock-300"
+        placeholder={PLACEHOLDER}
+        className="w-full resize-y rounded-xl border border-border bg-white px-3 py-2.5 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted/60 focus:border-flock-600 focus:ring-2 focus:ring-flock-300"
       />
 
       {state.error && (
