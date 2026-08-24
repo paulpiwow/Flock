@@ -79,25 +79,3 @@ export async function deleteWeek(user: ActiveUser, weekId: string) {
   if (res.count === 0) throw new Error("Week not found on this hall.");
 }
 
-/** RS starts a new week; becomes the current week for the whole hall. */
-export async function createWeek(
-  user: ActiveUser,
-  input: { passageRef: string; enduringUrl: string | null; date: Date },
-) {
-  assertAdmin(user);
-  const last = await prisma.week.findFirst({
-    where: { hallId: user.hallId },
-    orderBy: { index: "desc" },
-    select: { index: true, semester: true },
-  });
-  return prisma.week.create({
-    data: {
-      hallId: user.hallId,
-      index: (last?.index ?? 0) + 1,
-      semester: last?.semester ?? "Fall 2026",
-      date: input.date,
-      passageRef: input.passageRef,
-      enduringUrl: input.enduringUrl,
-    },
-  });
-}

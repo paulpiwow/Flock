@@ -4,12 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireActiveUser } from "@/lib/auth";
-import {
-  upsertWeeklyNote,
-  setWeekPassage,
-  createWeek,
-  deleteWeek,
-} from "@/lib/notes";
+import { upsertWeeklyNote, setWeekPassage, deleteWeek } from "@/lib/notes";
 
 export type SaveState = { ok?: boolean; error?: string };
 
@@ -82,22 +77,3 @@ export async function deleteWeekAction(formData: FormData): Promise<void> {
   redirect("/notes");
 }
 
-/** RS: start a new week (becomes the current week). */
-export async function newWeekAction(
-  _prev: SaveState,
-  formData: FormData,
-): Promise<SaveState> {
-  const user = await requireActiveUser();
-  const passageRef = String(formData.get("passageRef") ?? "").trim();
-  const enduringUrl = String(formData.get("enduringUrl") ?? "").trim() || null;
-  if (!passageRef) return { error: "Enter a passage." };
-
-  try {
-    await createWeek(user, { passageRef, enduringUrl, date: new Date() });
-  } catch (e) {
-    return { error: e instanceof Error ? e.message : "Could not create." };
-  }
-  revalidatePath("/notes");
-  revalidatePath("/verse");
-  return { ok: true };
-}
