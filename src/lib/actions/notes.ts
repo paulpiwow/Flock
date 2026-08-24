@@ -1,9 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireActiveUser } from "@/lib/auth";
-import { upsertWeeklyNote, setWeekPassage, createWeek } from "@/lib/notes";
+import {
+  upsertWeeklyNote,
+  setWeekPassage,
+  createWeek,
+  deleteWeek,
+} from "@/lib/notes";
 
 export type SaveState = { ok?: boolean; error?: string };
 
@@ -63,6 +69,17 @@ export async function setPassageAction(
   }
   revalidatePath("/notes");
   return { ok: true };
+}
+
+/** RS: delete a week (and its attendance + notes). Returns to the current week. */
+export async function deleteWeekAction(formData: FormData): Promise<void> {
+  const user = await requireActiveUser();
+  const weekId = String(formData.get("weekId") ?? "");
+  if (weekId) await deleteWeek(user, weekId);
+  revalidatePath("/notes");
+  revalidatePath("/attendance");
+  revalidatePath("/trends");
+  redirect("/notes");
 }
 
 /** RS: start a new week (becomes the current week). */

@@ -63,7 +63,7 @@ export default async function ResourcesPage() {
                 />
               </a>
 
-              {isAdmin && (
+              {isAdmin && !r.builtIn && (
                 <form action={deleteResourceAction} className="shrink-0">
                   <input type="hidden" name="id" value={r.id} />
                   <button

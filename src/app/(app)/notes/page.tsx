@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BookOpen, ExternalLink } from "lucide-react";
+import { BookOpen, ExternalLink, Trash2 } from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
 import { getWeekContext, getArchiveWeeks } from "@/lib/notes";
+import { deleteWeekAction } from "@/lib/actions/notes";
 import { WeeklyNoteEditor } from "@/components/WeeklyNoteEditor";
 import { RsPassageForm } from "@/components/RsPassageForm";
 import { cn } from "@/lib/cn";
@@ -111,6 +112,26 @@ export default async function NotesPage({
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* RS: delete the week being viewed (removes its attendance + notes). */}
+      {user.role === "ADMIN" && (
+        <div className="border-t border-border pt-4">
+          <form action={deleteWeekAction}>
+            <input type="hidden" name="weekId" value={week.id} />
+            <button
+              type="submit"
+              className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-absent hover:bg-absent/10"
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden />
+              Delete this week
+            </button>
+          </form>
+          <p className="mt-1.5 text-[11px] text-muted">
+            Removes Week {week.index} and its attendance for the whole hall.
+            Can&apos;t be undone.
+          </p>
         </div>
       )}
     </section>

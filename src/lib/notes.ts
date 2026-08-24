@@ -70,6 +70,15 @@ export async function setWeekPassage(
   });
 }
 
+/** RS deletes a week — cascades to its attendance records and everyone's notes. */
+export async function deleteWeek(user: ActiveUser, weekId: string) {
+  assertAdmin(user);
+  const res = await prisma.week.deleteMany({
+    where: { id: weekId, hallId: user.hallId },
+  });
+  if (res.count === 0) throw new Error("Week not found on this hall.");
+}
+
 /** RS starts a new week; becomes the current week for the whole hall. */
 export async function createWeek(
   user: ActiveUser,

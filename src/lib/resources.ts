@@ -19,11 +19,49 @@ function visibleAudiences(role: ActiveUser["role"]): ResourceAudience[] {
   return ["ALL"];
 }
 
-export async function getResources(user: ActiveUser) {
-  return prisma.resource.findMany({
-    where: { hallId: user.hallId, audience: { in: visibleAudiences(user.role) } },
+/**
+ * Standard Liberty-wide links, shown on every hall. Built into the app (not
+ * per-hall rows), so they're always present and can't be accidentally deleted.
+ */
+const BUILT_IN: { label: string; url: string; audience: ResourceAudience }[] = [
+  {
+    label: "One-on-One Check-In",
+    url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=jiH4ugKzZUSpk0o5yXJRshDK5r5D3UtJve3R6V86ADBUNkNBUTVLQlowT1M3MUQ1UU5OSUVQMVAxQS4u",
+    audience: "ADMIN",
+  },
+  {
+    label: "Partnership Check-In",
+    url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=jiH4ugKzZUSpk0o5yXJRshDK5r5D3UtJve3R6V86ADBUQUhFS0o5VVY1VkFFU0lIOE9ZTktPNk1PUC4u",
+    audience: "ADMIN",
+  },
+  {
+    label: "Curfew Sign-Out Form",
+    url: "https://apex.liberty.edu/banprd/f?p=357:11:13754120584071",
+    audience: "ALL",
+  },
+];
+
+export type ResourceItem = {
+  id: string;
+  label: string;
+  url: string;
+  audience: ResourceAudience;
+  builtIn: boolean;
+};
+
+export async function getResources(user: ActiveUser): Promise<ResourceItem[]> {
+  const audiences = visibleAudiences(user.role);
+  const rows = await prisma.resource.findMany({
+    where: { hallId: user.hallId, audience: { in: audiences } },
     orderBy: [{ pinned: "desc" }, { sort: "asc" }, { createdAt: "asc" }],
+    select: { id: true, label: true, url: true, audience: true },
   });
+
+  const builtIns: ResourceItem[] = BUILT_IN.filter((b) =>
+    audiences.includes(b.audience),
+  ).map((b, i) => ({ id: `builtin-${i}`, ...b, builtIn: true }));
+
+  return [...builtIns, ...rows.map((r) => ({ ...r, builtIn: false }))];
 }
 
 /** Pinned links for the Home screen. */
