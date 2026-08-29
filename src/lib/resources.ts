@@ -35,6 +35,11 @@ const BUILT_IN: { label: string; url: string; audience: ResourceAudience }[] = [
     audience: "ADMIN",
   },
   {
+    label: "Attendance",
+    url: "https://apex.liberty.edu/banprd/f?p=369:2:105873435883901:::::",
+    audience: "ADMIN",
+  },
+  {
     label: "Curfew Sign-Out Form",
     url: "https://apex.liberty.edu/banprd/f?p=357:11:13754120584071",
     audience: "ALL",
