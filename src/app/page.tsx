@@ -4,7 +4,7 @@ import { SheepMark } from "@/components/SheepMark";
 import { getCurrentUser } from "@/lib/auth";
 
 const LINK_ERRORS: Record<string, string> = {
-  link: 'That link is invalid or has expired. Use "Forgot password?" to request a new one.',
+  link: "That reset link is invalid or has expired. Ask your RS for a new one.",
 };
 
 export default async function LandingPage({

@@ -5,7 +5,6 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeCode } from "@/lib/codes";
-import { siteOrigin } from "@/lib/site";
 
 export type AuthState = { error?: string; message?: string };
 
@@ -112,17 +111,10 @@ export async function authenticate(
   prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
-  switch (formData.get("mode")) {
-    case "signup":
-      return signUp(prev, formData);
-    case "forgot":
-      return requestPasswordReset(prev, formData);
-    default:
-      return signIn(prev, formData);
-  }
+  return formData.get("mode") === "signup"
+    ? signUp(prev, formData)
+    : signIn(prev, formData);
 }
-
-const forgotSchema = z.object({ email: libertyEmail });
 
 const newPasswordSchema = z
   .object({
@@ -134,37 +126,7 @@ const newPasswordSchema = z
     path: ["confirm"],
   });
 
-/**
- * "Forgot password" — email a reset link. The link lands on /auth/confirm,
- * which verifies the token and forwards to /reset-password. Always responds
- * with the same message so it can't be used to probe which emails exist.
- */
-export async function requestPasswordReset(
-  _prev: AuthState,
-  formData: FormData,
-): Promise<AuthState> {
-  const parsed = forgotSchema.safeParse({ email: formData.get("email") });
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(
-    parsed.data.email,
-    { redirectTo: `${await siteOrigin()}/auth/confirm?next=/reset-password` },
-  );
-  // Rate-limit errors are worth surfacing; anything else stays generic.
-  if (error && error.status === 429) {
-    return { error: "Too many requests — wait a minute and try again." };
-  }
-
-  return {
-    message:
-      "If that email has an account, a reset link is on its way. Check your Liberty inbox (and spam).",
-  };
-}
-
-/** Set a new password for the signed-in user (reached via the reset link). */
+/** Set a new password for the signed-in user (reached via the RS reset link). */
 export async function updatePassword(
   _prev: AuthState,
   formData: FormData,
@@ -185,8 +147,7 @@ export async function updatePassword(
     // Session from the reset link has expired (or was never established).
     if (error.status === 401 || /session/i.test(error.message)) {
       return {
-        error:
-          "That reset link has expired. Go back to the login page and request a new one.",
+        error: "That reset link has expired. Ask your RS for a new one.",
       };
     }
     return { error: error.message };

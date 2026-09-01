@@ -3,12 +3,12 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Landing route for links in Supabase auth emails (password reset today; the
- * same handler works for signup confirmation and magic links).
+ * Landing route for Supabase auth links. Today that's the password-reset link
+ * an RS generates on the People page; the same handler works for any Supabase
+ * auth email (confirmation, magic link) if those are ever turned on.
  *
- * Accepts either form Supabase can send, so it works no matter how the email
- * template is configured:
- *   - ?token_hash=...&type=recovery  (template uses {{ .TokenHash }})
+ * Accepts either form Supabase can produce:
+ *   - ?token_hash=...&type=recovery  (RS reset link / {{ .TokenHash }} template)
  *   - ?code=...                      (default {{ .ConfirmationURL }} template)
  *
  * On success the user has a session cookie and is sent to `next`. On failure

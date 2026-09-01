@@ -4,7 +4,7 @@ import { SheepMark } from "@/components/SheepMark";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Set a new password. Reached from the reset-link email (via /auth/confirm),
+ * Set a new password. Reached from the RS's reset link (via /auth/confirm),
  * which establishes a session first — so anyone here is signed in. Signed-out
  * visitors are bounced to login by the proxy before this renders.
  */

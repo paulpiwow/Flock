@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 
 const initialState: AuthState = {};
 
-type Mode = "login" | "signup" | "forgot";
+type Mode = "login" | "signup";
 
 export function AuthForm({ initialError }: { initialError?: string }) {
   const [mode, setMode] = useState<Mode>("login");
@@ -16,7 +16,6 @@ export function AuthForm({ initialError }: { initialError?: string }) {
   );
 
   const isSignup = mode === "signup";
-  const isForgot = mode === "forgot";
 
   return (
     <form action={formAction} className="mt-5 space-y-4">
@@ -89,35 +88,29 @@ export function AuthForm({ initialError }: { initialError?: string }) {
         </div>
       )}
 
-      {!isForgot && (
-        <div>
-          <label
-            htmlFor="password"
-            className="mb-1 block text-xs font-medium text-muted"
-          >
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete={isSignup ? "new-password" : "current-password"}
-            required
-            minLength={isSignup ? 8 : undefined}
-            placeholder="••••••••"
-            className="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-foreground outline-none focus:border-flock-600 focus:ring-2 focus:ring-flock-300"
-          />
-          {mode === "login" && (
-            <button
-              type="button"
-              onClick={() => setMode("forgot")}
-              className="mt-1.5 text-[11px] font-medium text-flock-600 underline-offset-4 hover:underline"
-            >
-              Forgot password?
-            </button>
-          )}
-        </div>
-      )}
+      <div>
+        <label
+          htmlFor="password"
+          className="mb-1 block text-xs font-medium text-muted"
+        >
+          Password
+        </label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete={isSignup ? "new-password" : "current-password"}
+          required
+          minLength={isSignup ? 8 : undefined}
+          placeholder="••••••••"
+          className="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-foreground outline-none focus:border-flock-600 focus:ring-2 focus:ring-flock-300"
+        />
+        {!isSignup && (
+          <p className="mt-1.5 text-[11px] text-muted">
+            Forgot your password? Ask your RS for a reset link.
+          </p>
+        )}
+      </div>
 
       {isSignup && (
         <div>
@@ -138,12 +131,6 @@ export function AuthForm({ initialError }: { initialError?: string }) {
             className="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-foreground outline-none focus:border-flock-600 focus:ring-2 focus:ring-flock-300"
           />
         </div>
-      )}
-
-      {isForgot && (
-        <p className="text-xs text-muted">
-          Enter your email and we&apos;ll send you a link to set a new password.
-        </p>
       )}
 
       {state.error && (
@@ -173,41 +160,24 @@ export function AuthForm({ initialError }: { initialError?: string }) {
         )}
       >
         {pending
-          ? isForgot
-            ? "Sending…"
-            : isSignup
-              ? "Creating account…"
-              : "Logging in…"
-          : isForgot
-            ? "Send reset link"
-            : isSignup
-              ? "Sign Up"
-              : "Log In"}
+          ? isSignup
+            ? "Creating account…"
+            : "Logging in…"
+          : isSignup
+            ? "Sign Up"
+            : "Log In"}
       </button>
 
-      {isForgot ? (
-        <p className="text-center text-xs text-muted">
-          Remembered it?{" "}
-          <button
-            type="button"
-            onClick={() => setMode("login")}
-            className="font-semibold text-flock-600 underline-offset-4 hover:underline"
-          >
-            Back to log in
-          </button>
-        </p>
-      ) : (
-        <p className="text-center text-xs text-muted">
-          {isSignup ? "Already have an account?" : "New to Flock?"}{" "}
-          <button
-            type="button"
-            onClick={() => setMode(isSignup ? "login" : "signup")}
-            className="font-semibold text-flock-600 underline-offset-4 hover:underline"
-          >
-            {isSignup ? "Log in" : "Sign up"}
-          </button>
-        </p>
-      )}
+      <p className="text-center text-xs text-muted">
+        {isSignup ? "Already have an account?" : "New to Flock?"}{" "}
+        <button
+          type="button"
+          onClick={() => setMode(isSignup ? "login" : "signup")}
+          className="font-semibold text-flock-600 underline-offset-4 hover:underline"
+        >
+          {isSignup ? "Log in" : "Sign up"}
+        </button>
+      </p>
     </form>
   );
 }
