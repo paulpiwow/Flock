@@ -3,10 +3,21 @@ import { AuthForm } from "@/components/AuthForm";
 import { SheepMark } from "@/components/SheepMark";
 import { getCurrentUser } from "@/lib/auth";
 
-export default async function LandingPage() {
+const LINK_ERRORS: Record<string, string> = {
+  link: 'That link is invalid or has expired. Use "Forgot password?" to request a new one.',
+};
+
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   // Already signed in? Skip the login screen.
   const user = await getCurrentUser();
   if (user) redirect("/home");
+
+  const { error } = await searchParams;
+  const initialError = error ? LINK_ERRORS[error] : undefined;
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-12">
@@ -27,7 +38,7 @@ export default async function LandingPage() {
           <h2 className="text-center text-lg font-semibold text-foreground">
             Welcome to Flock
           </h2>
-          <AuthForm />
+          <AuthForm initialError={initialError} />
         </div>
       </div>
     </main>

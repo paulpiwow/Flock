@@ -109,6 +109,26 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
 
 ## Changelog
 
+### 9/1/2026 (Forgot password)
+- **Self-serve password reset.** Login screen has a **Forgot password?** link → enter email → Supabase
+  emails a reset link → link lands on `/auth/confirm` (verifies the token, establishes a session) →
+  `/reset-password` (new password + confirm) → `/home`. Response to the email form is always the same
+  message so it can't be used to check whether an address has an account.
+- `/auth/confirm` accepts both link shapes Supabase can send (`?token_hash=…&type=recovery` and
+  `?code=…`), so it works with the default email template *and* the recommended SSR one. Bad/expired
+  links bounce to `/?error=link` with a friendly message.
+- **Config needed (Supabase → Auth):** (1) **URL Configuration → Redirect URLs** must include
+  `https://getflock.cc/auth/confirm` (and `http://localhost:3000/auth/confirm` for dev) — otherwise
+  Supabase ignores our `redirectTo` and sends people to the Site URL, where nothing handles the link.
+  (2) *Recommended:* **Email Templates → Reset password** — change the link to
+  `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`.
+  The default `{{ .ConfirmationURL }}` uses PKCE, which only works if the link is opened in the same
+  browser that requested it (fails when you request on a laptop and tap the link on your phone).
+- **Until this is deployed + configured**, the manual workaround for one person is Supabase → Auth →
+  Users → (user) → **Send password recovery** *only after* the template/redirect config above is done,
+  since the app must be able to handle the link. Faster: delete their login (Deny on People page or
+  Supabase Users) and have them sign up again with the same email and hall code.
+
 ### 8/9/2026 (RS approval gate — replaces email confirmation)
 - New authorization model: **email confirmation off + RS approves each signup.** A student signs up
   with `@liberty.edu` + hall code → lands **pending** (no access) → their RS approves or denies on the

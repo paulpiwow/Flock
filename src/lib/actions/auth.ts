@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -74,7 +75,9 @@ export async function signUp(
   // If a code was entered, verify it up front so typos fail clearly. The code
   // itself is the credential that binds a hall (resolved again on first login).
   if (hallCode) {
-    const hall = await prisma.hall.findUnique({ where: { joinCode: hallCode } });
+    const hall = await prisma.hall.findUnique({
+      where: { joinCode: hallCode },
+    });
     if (!hall) {
       return { error: "That hall code isn't right — check with your RS." };
     }
@@ -102,9 +105,100 @@ export async function authenticate(
   prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
-  return formData.get("mode") === "signup"
-    ? signUp(prev, formData)
-    : signIn(prev, formData);
+  switch (formData.get("mode")) {
+    case "signup":
+      return signUp(prev, formData);
+    case "forgot":
+      return requestPasswordReset(prev, formData);
+    default:
+      return signIn(prev, formData);
+  }
+}
+
+const forgotSchema = z.object({ email: libertyEmail });
+
+const newPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: "Passwords don't match.",
+    path: ["confirm"],
+  });
+
+/** Public origin of this deployment, for building the reset-link redirect. */
+async function siteOrigin(): Promise<string> {
+  const h = await headers();
+  const fromHeader = h.get("origin");
+  if (fromHeader) return fromHeader;
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  if (host) {
+    const proto = h.get("x-forwarded-proto") ?? "https";
+    return `${proto}://${host}`;
+  }
+  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+}
+
+/**
+ * "Forgot password" — email a reset link. The link lands on /auth/confirm,
+ * which verifies the token and forwards to /reset-password. Always responds
+ * with the same message so it can't be used to probe which emails exist.
+ */
+export async function requestPasswordReset(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const parsed = forgotSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    parsed.data.email,
+    { redirectTo: `${await siteOrigin()}/auth/confirm?next=/reset-password` },
+  );
+  // Rate-limit errors are worth surfacing; anything else stays generic.
+  if (error && error.status === 429) {
+    return { error: "Too many requests — wait a minute and try again." };
+  }
+
+  return {
+    message:
+      "If that email has an account, a reset link is on its way. Check your Liberty inbox (and spam).",
+  };
+}
+
+/** Set a new password for the signed-in user (reached via the reset link). */
+export async function updatePassword(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const parsed = newPasswordSchema.safeParse({
+    password: formData.get("password"),
+    confirm: formData.get("confirm"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.data.password,
+  });
+  if (error) {
+    // Session from the reset link has expired (or was never established).
+    if (error.status === 401 || /session/i.test(error.message)) {
+      return {
+        error:
+          "That reset link has expired. Go back to the login page and request a new one.",
+      };
+    }
+    return { error: error.message };
+  }
+
+  redirect("/home");
 }
 
 export async function signOut() {
