@@ -119,6 +119,27 @@ export function AuthForm({ initialError }: { initialError?: string }) {
         </div>
       )}
 
+      {isSignup && (
+        <div>
+          <label
+            htmlFor="confirm"
+            className="mb-1 block text-xs font-medium text-muted"
+          >
+            Confirm password
+          </label>
+          <input
+            id="confirm"
+            name="confirm"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            placeholder="••••••••"
+            className="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-foreground outline-none focus:border-flock-600 focus:ring-2 focus:ring-flock-300"
+          />
+        </div>
+      )}
+
       {isForgot && (
         <p className="text-xs text-muted">
           Enter your email and we&apos;ll send you a link to set a new password.

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { ArrowDownRight, Check, Trash2, UserPlus, X } from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
 import { getPeople } from "@/lib/people";
+import { ResetLinkButton } from "@/components/ResetLinkButton";
 import {
   promoteToCglAction,
   demoteToStudentAction,
@@ -135,8 +136,8 @@ export default async function PeoplePage() {
             ))}
           </ul>
           <p className="mt-2 text-[11px] text-muted">
-            New signups can&apos;t get in until you approve them. Deny permanently
-            deletes the account.
+            New signups can&apos;t get in until you approve them. Deny
+            permanently deletes the account.
           </p>
         </div>
       )}
@@ -153,7 +154,12 @@ export default async function PeoplePage() {
               name={a.username}
               subtitle={a.id === user.id ? "You" : "Resident Shepherd"}
             >
-              {a.id !== user.id && <Demote id={a.id} />}
+              {a.id !== user.id && (
+                <>
+                  <ResetLinkButton id={a.id} />
+                  <Demote id={a.id} />
+                </>
+              )}
             </Row>
           ))}
         </ul>
@@ -169,7 +175,12 @@ export default async function PeoplePage() {
         ) : (
           <ul className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
             {cgls.map((c) => (
-              <Row key={c.id} name={c.username} subtitle={c.groupName ?? "No group"}>
+              <Row
+                key={c.id}
+                name={c.username}
+                subtitle={c.groupName ?? "No group"}
+              >
+                <ResetLinkButton id={c.id} />
                 <Demote id={c.id} />
               </Row>
             ))}
@@ -184,15 +195,22 @@ export default async function PeoplePage() {
         </h2>
         <ul className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
           {students.map((s) => (
-            <Row key={s.id} name={s.username} subtitle={s.groupName ?? "No group"}>
+            <Row
+              key={s.id}
+              name={s.username}
+              subtitle={s.groupName ?? "No group"}
+            >
+              <ResetLinkButton id={s.id} />
               <MakeCgl id={s.id} />
               <Remove id={s.id} />
             </Row>
           ))}
         </ul>
         <p className="mt-2 text-[11px] text-muted">
-          Making a CGL creates a new group for them to lead — draft their guys in
-          with the Group Maker.
+          Making a CGL creates a new group for them to lead — draft their guys
+          in with the Group Maker. <span className="font-medium">Reset</span>{" "}
+          makes a one-time password-reset link you can text to someone
+          who&apos;s locked out.
         </p>
       </div>
     </section>

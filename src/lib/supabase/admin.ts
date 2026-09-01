@@ -11,12 +11,35 @@ import { createClient } from "@supabase/supabase-js";
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-/** Delete a Supabase Auth user by id. Returns true if actually deleted. */
-export async function deleteAuthUser(userId: string): Promise<boolean> {
-  if (!url || !serviceKey) return false; // not configured
-  const admin = createClient(url, serviceKey, {
+function adminClient() {
+  if (!url || !serviceKey) return null; // not configured
+  return createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+}
+
+/**
+ * Mint a one-time password-recovery token for an email, without sending any
+ * mail. Returns the hashed token to embed in a /auth/confirm link, or null if
+ * the service key isn't configured. Throws on Supabase errors.
+ */
+export async function createRecoveryToken(
+  email: string,
+): Promise<string | null> {
+  const admin = adminClient();
+  if (!admin) return null;
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "recovery",
+    email,
+  });
+  if (error) throw new Error(error.message);
+  return data.properties.hashed_token;
+}
+
+/** Delete a Supabase Auth user by id. Returns true if actually deleted. */
+export async function deleteAuthUser(userId: string): Promise<boolean> {
+  const admin = adminClient();
+  if (!admin) return false;
   const { error } = await admin.auth.admin.deleteUser(userId);
   return !error;
 }

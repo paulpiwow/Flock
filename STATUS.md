@@ -124,10 +124,14 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
   `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`.
   The default `{{ .ConfirmationURL }}` uses PKCE, which only works if the link is opened in the same
   browser that requested it (fails when you request on a laptop and tap the link on your phone).
-- **Until this is deployed + configured**, the manual workaround for one person is Supabase → Auth →
-  Users → (user) → **Send password recovery** *only after* the template/redirect config above is done,
-  since the app must be able to handle the link. Faster: delete their login (Deny on People page or
-  Supabase Users) and have them sign up again with the same email and hall code.
+- **RS reset link (no email).** Because Supabase mail lands in Liberty junk, the People page now has a
+  **Reset** button on every person (RS only). It mints a one-time recovery token via the service-role
+  admin client (`createRecoveryToken`) and shows a sheet with **Share** (phone share sheet → Messages)
+  and **Copy link**. The RS texts it; the student opens it → `/auth/confirm` → `/reset-password`. Works
+  once, expires ~1 hour. Needs `SUPABASE_SERVICE_ROLE_KEY` (same as Deny) — without it the button shows
+  a clear "not set up" error. Also works regardless of the email-template setting above.
+- **Confirm password box on sign up** (server-validated match; "Passwords don't match.").
+- Why: a student signed up with a mistyped password and had no way back in.
 
 ### 8/9/2026 (RS approval gate — replaces email confirmation)
 - New authorization model: **email confirmation off + RS approves each signup.** A student signs up

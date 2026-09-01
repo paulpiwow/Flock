@@ -1,11 +1,11 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeCode } from "@/lib/codes";
+import { siteOrigin } from "@/lib/site";
 
 export type AuthState = { error?: string; message?: string };
 
@@ -23,18 +23,24 @@ const signInSchema = z.object({
   password: z.string().min(1, "Enter your password."),
 });
 
-const signUpSchema = z.object({
-  email: libertyEmail,
-  username: z
-    .string()
-    .trim()
-    .min(2, "Username must be at least 2 characters.")
-    .max(30, "Username is too long."),
-  password: z.string().min(8, "Password must be at least 8 characters."),
-  // Optional at signup: with a valid code you bind to that hall immediately;
-  // without one you land pending and enter a code on /join.
-  hallCode: z.string().trim().toUpperCase().optional(),
-});
+const signUpSchema = z
+  .object({
+    email: libertyEmail,
+    username: z
+      .string()
+      .trim()
+      .min(2, "Username must be at least 2 characters.")
+      .max(30, "Username is too long."),
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    confirm: z.string(),
+    // Optional at signup: with a valid code you bind to that hall immediately;
+    // without one you land pending and enter a code on /join.
+    hallCode: z.string().trim().toUpperCase().optional(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: "Passwords don't match.",
+    path: ["confirm"],
+  });
 
 export async function signIn(
   _prev: AuthState,
@@ -64,6 +70,7 @@ export async function signUp(
     email: formData.get("email"),
     username: formData.get("username"),
     password: formData.get("password"),
+    confirm: formData.get("confirm"),
     hallCode: codeInput || undefined,
   });
   if (!parsed.success) {
@@ -126,19 +133,6 @@ const newPasswordSchema = z
     message: "Passwords don't match.",
     path: ["confirm"],
   });
-
-/** Public origin of this deployment, for building the reset-link redirect. */
-async function siteOrigin(): Promise<string> {
-  const h = await headers();
-  const fromHeader = h.get("origin");
-  if (fromHeader) return fromHeader;
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  if (host) {
-    const proto = h.get("x-forwarded-proto") ?? "https";
-    return `${proto}://${host}`;
-  }
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-}
 
 /**
  * "Forgot password" — email a reset link. The link lands on /auth/confirm,

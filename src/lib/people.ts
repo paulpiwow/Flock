@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import type { ActiveUser } from "@/lib/auth";
 import { byLastName, groupLabel } from "@/lib/names";
-import { deleteAuthUser } from "@/lib/supabase/admin";
+import { createRecoveryToken, deleteAuthUser } from "@/lib/supabase/admin";
 
 /**
  * People & roles management (RS only, hall-scoped). Promote a student to CGL,
@@ -60,7 +60,9 @@ export async function getPeople(user: ActiveUser) {
       select: {
         id: true,
         username: true,
-        group: { select: { name: true, leader: { select: { username: true } } } },
+        group: {
+          select: { name: true, leader: { select: { username: true } } },
+        },
       },
     }),
     // Awaiting the RS's approval (no access yet). Show email so the RS can vet it.
@@ -174,7 +176,11 @@ export async function demoteToStudent(user: ActiveUser, targetId: string) {
   assertAdmin(user);
   if (targetId === user.id) throw new Error("You can't change your own role.");
   const target = await prisma.user.findFirst({
-    where: { id: targetId, hallId: user.hallId, role: { in: ["LEADER", "ADMIN"] } },
+    where: {
+      id: targetId,
+      hallId: user.hallId,
+      role: { in: ["LEADER", "ADMIN"] },
+    },
     select: { id: true },
   });
   if (!target) throw new Error("Person not found on this hall.");
@@ -186,4 +192,35 @@ export async function demoteToStudent(user: ActiveUser, targetId: string) {
       data: { role: "MEMBER", groupId: null },
     });
   });
+}
+
+/**
+ * RS mints a password-reset link for someone on their hall — for when the
+ * reset email lands in junk (or never arrives). The RS texts the link; the
+ * student opens it and sets a new password. One-time use, expires ~1 hour.
+ */
+export async function passwordResetLink(
+  user: ActiveUser,
+  targetId: string,
+  origin: string,
+): Promise<{ link: string; username: string }> {
+  assertAdmin(user);
+  const target = await prisma.user.findFirst({
+    where: { id: targetId, hallId: user.hallId, isActive: true },
+    select: { email: true, username: true },
+  });
+  if (!target) throw new Error("Person not found on this hall.");
+
+  const tokenHash = await createRecoveryToken(target.email);
+  if (!tokenHash) {
+    throw new Error(
+      "Reset links aren't set up yet (missing SUPABASE_SERVICE_ROLE_KEY).",
+    );
+  }
+
+  const url = new URL("/auth/confirm", origin);
+  url.searchParams.set("token_hash", tokenHash);
+  url.searchParams.set("type", "recovery");
+  url.searchParams.set("next", "/reset-password");
+  return { link: url.toString(), username: target.username };
 }

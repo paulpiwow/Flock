@@ -2,7 +2,35 @@
 
 import { revalidatePath } from "next/cache";
 import { requireActiveUser } from "@/lib/auth";
-import { promoteToCgl, demoteToStudent, approveUser, removeUser } from "@/lib/people";
+import {
+  promoteToCgl,
+  demoteToStudent,
+  approveUser,
+  removeUser,
+  passwordResetLink,
+} from "@/lib/people";
+import { siteOrigin } from "@/lib/site";
+
+export type ResetLinkState = {
+  link?: string;
+  username?: string;
+  error?: string;
+};
+
+/** RS generates a one-time password-reset link to text to a student. */
+export async function resetLinkAction(
+  _prev: ResetLinkState,
+  formData: FormData,
+): Promise<ResetLinkState> {
+  const user = await requireActiveUser();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "Missing person." };
+  try {
+    return await passwordResetLink(user, id, await siteOrigin());
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Couldn't make a link." };
+  }
+}
 
 export async function promoteToCglAction(formData: FormData): Promise<void> {
   const user = await requireActiveUser();
