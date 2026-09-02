@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeCode } from "@/lib/codes";
@@ -125,6 +126,36 @@ const newPasswordSchema = z
     message: "Passwords don't match.",
     path: ["confirm"],
   });
+
+/**
+ * Verify a one-time auth link (from /auth/confirm's Continue button) and sign
+ * the user in. Handles both link shapes Supabase can produce. On success sends
+ * them to `next`; on failure back to login with an error flag.
+ */
+export async function confirmAuthLink(formData: FormData): Promise<void> {
+  const tokenHash = String(formData.get("token_hash") ?? "");
+  const type = String(formData.get("type") ?? "") as EmailOtpType | "";
+  const code = String(formData.get("code") ?? "");
+  const rawNext = String(formData.get("next") ?? "/home");
+  // Only allow same-site relative paths as the destination.
+  const next =
+    rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/home";
+
+  const supabase = await createClient();
+  let ok = false;
+  if (tokenHash && type) {
+    const { error } = await supabase.auth.verifyOtp({
+      type,
+      token_hash: tokenHash,
+    });
+    ok = !error;
+  } else if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    ok = !error;
+  }
+
+  redirect(ok ? next : "/?error=link");
+}
 
 /** Set a new password for the signed-in user (reached via the RS reset link). */
 export async function updatePassword(
