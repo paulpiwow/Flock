@@ -42,7 +42,7 @@ export default async function ResourcesPage() {
                 href={r.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-1 items-center justify-between gap-2 active:opacity-70"
+                className="flex min-w-0 flex-1 items-center justify-between gap-2 active:opacity-70"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex min-w-0 items-center gap-2">
