@@ -25,11 +25,6 @@ const signInSchema = z.object({
 const signUpSchema = z
   .object({
     email: libertyEmail,
-    username: z
-      .string()
-      .trim()
-      .min(2, "Username must be at least 2 characters.")
-      .max(30, "Username is too long."),
     password: z.string().min(8, "Password must be at least 8 characters."),
     confirm: z.string(),
     // Optional at signup: with a valid code you bind to that hall immediately;
@@ -67,7 +62,6 @@ export async function signUp(
   const codeInput = normalizeCode(formData.get("hallCode"));
   const parsed = signUpSchema.safeParse({
     email: formData.get("email"),
-    username: formData.get("username"),
     password: formData.get("password"),
     confirm: formData.get("confirm"),
     hallCode: codeInput || undefined,
@@ -76,7 +70,7 @@ export async function signUp(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
   }
 
-  const { email, password, username, hallCode } = parsed.data;
+  const { email, password, hallCode } = parsed.data;
 
   // If a code was entered, verify it up front so typos fail clearly. The code
   // itself is the credential that binds a hall (resolved again on first login).
@@ -93,7 +87,9 @@ export async function signUp(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { username, hallCode: hallCode ?? null } },
+    // No username collected — getCurrentUser names people by their email's
+    // local part (e.g. "jsmith"), so self-chosen "silly names" can't happen.
+    options: { data: { hallCode: hallCode ?? null } },
   });
   if (error) return { error: error.message };
 

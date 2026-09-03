@@ -44,9 +44,9 @@ export default async function ResourcesPage() {
                 rel="noopener noreferrer"
                 className="flex flex-1 items-center justify-between gap-2 active:opacity-70"
               >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
+                <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <p className="truncate text-sm font-medium text-foreground">
                       {r.label}
                     </p>
                     {isAdmin && (
