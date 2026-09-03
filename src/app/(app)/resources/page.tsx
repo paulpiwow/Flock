@@ -36,7 +36,7 @@ export default async function ResourcesPage() {
           {resources.map((r) => (
             <li
               key={r.id}
-              className="flex items-center gap-2 rounded-card border border-border bg-surface p-3 shadow-sm"
+              className="flex items-center gap-2 overflow-hidden rounded-card border border-border bg-surface p-3 shadow-sm"
             >
               <a
                 href={r.url}
