@@ -118,6 +118,10 @@ Switching from testing → real is Supabase settings + data cleanup — **no cod
   sheet → Messages) and **Copy link**. The RS texts it; the student opens it → `/auth/confirm` verifies
   the token and signs them in → `/reset-password` (new password + confirm) → `/home`. Works once,
   expires ~1 hour. Bad/expired links bounce to `/?error=link` ("ask your RS for a new one").
+- `/auth/confirm` is a **page with a Continue button**, not a GET handler that verifies on load. Chrome
+  prefetches pasted URLs and iMessage fetches links for previews — either would burn the one-time
+  token before the student saw anything (this bit us in testing: "invalid or expired" 1 minute after
+  generating). The token is only verified when Continue is tapped (server action `confirmAuthLink`).
 - Login screen has a hint under the password box: "Forgot your password? Ask your RS for a reset link."
 - **Confirm password box on sign up** (server-validated; "Passwords don't match.").
 - **Config needed:** `SUPABASE_SERVICE_ROLE_KEY` in `.env` + Vercel (same key Deny uses). Without it
