@@ -8,6 +8,7 @@ import {
   HandHeart,
   HeartHandshake,
   Home,
+  KeyRound,
   LayoutGrid,
   Link as LinkIcon,
   ListChecks,
@@ -38,6 +39,7 @@ const ICONS: Record<string, LucideIcon> = {
   calendar: Calendar,
   prayer: HandHeart,
   bell: Bell,
+  key: KeyRound,
 };
 
 export function Icon({

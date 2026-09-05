@@ -183,6 +183,37 @@ export async function updatePassword(
   redirect("/home");
 }
 
+/**
+ * Change the signed-in user's password from inside the app (Account page).
+ * Same rules as signup: 8+ characters, entered twice. Stays on the page and
+ * reports success instead of redirecting.
+ */
+export async function changePassword(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const parsed = newPasswordSchema.safeParse({
+    password: formData.get("password"),
+    confirm: formData.get("confirm"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.data.password,
+  });
+  if (error) {
+    if (error.status === 401 || /session/i.test(error.message)) {
+      return { error: "Your session has expired. Log in again to continue." };
+    }
+    return { error: error.message };
+  }
+
+  return { message: "Password updated." };
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
