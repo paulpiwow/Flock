@@ -1,7 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
-import { updatePassword, type AuthState } from "@/lib/actions/auth";
+import {
+  changePassword,
+  updatePassword,
+  type AuthState,
+} from "@/lib/actions/auth";
 import { cn } from "@/lib/cn";
 
 const initialState: AuthState = {};
@@ -9,9 +13,18 @@ const initialState: AuthState = {};
 const inputClass =
   "w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-foreground outline-none focus:border-flock-600 focus:ring-2 focus:ring-flock-300";
 
-export function ResetPasswordForm() {
+/**
+ * New password + confirm, 8+ characters (same rules as signup).
+ * - "reset": from the RS reset link; redirects home on success.
+ * - "change": from the in-app Account page; stays put and shows a success note.
+ */
+export function ResetPasswordForm({
+  variant = "reset",
+}: {
+  variant?: "reset" | "change";
+}) {
   const [state, formAction, pending] = useActionState(
-    updatePassword,
+    variant === "change" ? changePassword : updatePassword,
     initialState,
   );
 
@@ -62,6 +75,14 @@ export function ResetPasswordForm() {
           className="rounded-lg bg-absent/10 px-3 py-2 text-xs font-medium text-absent"
         >
           {state.error}
+        </p>
+      )}
+      {state.message && (
+        <p
+          role="status"
+          className="rounded-lg bg-flock-100 px-3 py-2 text-xs font-medium text-flock-800"
+        >
+          {state.message}
         </p>
       )}
 
