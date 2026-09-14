@@ -88,8 +88,8 @@ export async function signUp(
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    // No username at signup: the app row gets the email prefix, and the
-    // one-time name prompt collects the real name on first load.
+    // No username collected — getCurrentUser names people by their email's
+    // local part (e.g. "jsmith"), so self-chosen "silly names" can't happen.
     options: { data: { hallCode: hallCode ?? null } },
   });
   if (error) return { error: error.message };

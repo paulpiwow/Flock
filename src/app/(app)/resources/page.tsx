@@ -36,17 +36,17 @@ export default async function ResourcesPage() {
           {resources.map((r) => (
             <li
               key={r.id}
-              className="flex items-center gap-2 rounded-card border border-border bg-surface p-3 shadow-sm"
+              className="flex items-center gap-2 overflow-hidden rounded-card border border-border bg-surface p-3 shadow-sm"
             >
               <a
                 href={r.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-1 items-center justify-between gap-2 active:opacity-70"
+                className="flex min-w-0 flex-1 items-center justify-between gap-2 active:opacity-70"
               >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
+                <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <p className="truncate text-sm font-medium text-foreground">
                       {r.label}
                     </p>
                     {isAdmin && (
