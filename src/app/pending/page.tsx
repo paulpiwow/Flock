@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { SheepMark } from "@/components/SheepMark";
 import { SignOutButton } from "@/components/SignOutButton";
+import { displayName } from "@/lib/names";
 
 export default async function PendingPage() {
   const user = await requireUser(); // signed in
@@ -19,7 +20,7 @@ export default async function PendingPage() {
             Almost there
           </h1>
           <p className="mt-2 text-sm text-muted">
-            Hey {user.username} — you&apos;re all signed up. Your RS just needs to
+            Hey {displayName(user)} — you&apos;re all signed up. Your RS just needs to
             approve your account before you can jump in. Check back shortly.
           </p>
         </div>

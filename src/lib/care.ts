@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
 import { getCurrentWeek } from "@/lib/attendance";
-import { byLastName } from "@/lib/names";
+import { NAME_SELECT, byLastName, displayName } from "@/lib/names";
 
 /**
  * Care Notes data layer — real students' spiritual/personal details, so access
@@ -25,7 +25,7 @@ async function currentSemester(hallId: string): Promise<string> {
 export async function requireStudentAccess(user: ActiveUser, studentId: string) {
   const student = await prisma.user.findFirst({
     where: { id: studentId, hallId: user.hallId },
-    select: { id: true, username: true, groupId: true, hallId: true },
+    select: { id: true, groupId: true, hallId: true, ...NAME_SELECT },
   });
   if (!student) throw new Error("Student not found on this hall.");
 
@@ -49,7 +49,7 @@ export async function getStudentCareNotes(user: ActiveUser, studentId: string) {
   const notes = await prisma.careNote.findMany({
     where: { hallId: user.hallId, studentId },
     orderBy: { createdAt: "desc" },
-    include: { author: { select: { username: true } } },
+    include: { author: { select: NAME_SELECT } },
   });
   return { student, notes };
 }
@@ -77,7 +77,7 @@ export async function addCareNote(
 export async function getMyGuysWithNotes(user: ActiveUser) {
   const led = await prisma.group.findFirst({
     where: { hallId: user.hallId, leaderId: user.id },
-    include: { members: { select: { id: true, username: true } } },
+    include: { members: { select: { id: true, ...NAME_SELECT } } },
   });
   if (!led) return { group: null, guys: [] };
 
@@ -91,7 +91,7 @@ export async function getMyGuysWithNotes(user: ActiveUser) {
 
   const guys = [...led.members].sort(byLastName).map((m) => ({
     id: m.id,
-    username: m.username,
+    name: displayName(m),
     noteCount: byStudent.get(m.id)?._count._all ?? 0,
     lastNote: byStudent.get(m.id)?._max.createdAt ?? null,
   }));
@@ -106,8 +106,8 @@ export async function getRecentCareNotes(user: ActiveUser, take = 25) {
     orderBy: [{ createdAt: "desc" }],
     take,
     include: {
-      author: { select: { username: true } },
-      student: { select: { id: true, username: true } },
+      author: { select: NAME_SELECT },
+      student: { select: { id: true, ...NAME_SELECT } },
     },
   });
 }
@@ -117,7 +117,7 @@ export async function getHallStudentsWithNotes(user: ActiveUser) {
   if (user.role !== "ADMIN") throw new Error("Admin only.");
   const members = await prisma.user.findMany({
     where: { hallId: user.hallId, role: "MEMBER", isActive: true },
-    select: { id: true, username: true },
+    select: { id: true, ...NAME_SELECT },
   });
   const counts = await prisma.careNote.groupBy({
     by: ["studentId"],

@@ -2,7 +2,7 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
-import { byLastName, groupLabel } from "@/lib/names";
+import { NAME_SELECT, byLastName, displayName, groupLabel } from "@/lib/names";
 
 /**
  * Attendance data layer — the ONE place attendance is read/written. Every
@@ -100,7 +100,7 @@ export async function getSelfAttendance(user: ActiveUser) {
   const [group, record] = await Promise.all([
     prisma.group.findFirst({
       where: { id: user.groupId, hallId: user.hallId },
-      include: { leader: { select: { username: true } } },
+      include: { leader: { select: NAME_SELECT } },
     }),
     prisma.attendanceRecord.findUnique({
       where: { weekId_studentId: { weekId: week.id, studentId: user.id } },
@@ -134,7 +134,7 @@ async function requireGroupAccess(user: ActiveUser, groupId: string) {
   const group = await prisma.group.findFirst({
     where: { id: groupId, hallId: user.hallId },
     include: {
-      leader: { select: { id: true, username: true } },
+      leader: { select: { id: true, ...NAME_SELECT } },
       members: true,
     },
   });
@@ -158,7 +158,7 @@ export async function getGroupRoster(user: ActiveUser, groupId: string) {
 
   const roster = [...group.members].sort(byLastName).map((m) => ({
     id: m.id,
-    username: m.username,
+    name: displayName(m),
     record: byStudent.get(m.id) ?? null,
   }));
 
@@ -226,7 +226,7 @@ export async function getAllHallAttendance(user: ActiveUser, groupId?: string) {
       isActive: true,
       ...(groupId ? { groupId } : {}),
     },
-    select: { id: true, username: true, groupId: true },
+    select: { id: true, groupId: true, ...NAME_SELECT },
   });
 
   const records = week
@@ -252,10 +252,10 @@ export async function getHallGroups(user: ActiveUser) {
   const groups = await prisma.group.findMany({
     where: { hallId: user.hallId },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, leader: { select: { username: true } } },
+    select: { id: true, name: true, leader: { select: NAME_SELECT } },
   });
   return groups.map((g) => ({
     id: g.id,
-    name: groupLabel(g.leader?.username, g.name),
+    name: groupLabel(g.leader, g.name),
   }));
 }

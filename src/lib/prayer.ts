@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
 import type { PrayerAudience } from "@prisma/client";
-import { displayLastName } from "@/lib/names";
+import { NAME_SELECT, displayLastName, displayName, type Named } from "@/lib/names";
 import { sendPushToUsers } from "@/lib/push";
 
 /**
@@ -37,13 +37,13 @@ export type PrayerData = {
 };
 
 function toItems(
-  rows: { id: string; body: string; createdAt: Date; author: { username: string } | null }[],
+  rows: { id: string; body: string; createdAt: Date; author: Named | null }[],
 ): PrayerItem[] {
   return rows.map((r) => ({
     id: r.id,
     body: r.body,
     createdAt: r.createdAt,
-    author: r.author?.username ?? "Someone",
+    author: r.author ? displayName(r.author) : "Someone",
   }));
 }
 
@@ -55,9 +55,9 @@ export async function getPrayerData(user: ActiveUser): Promise<PrayerData> {
   if (user.role === "MEMBER" && user.groupId) {
     const group = await prisma.group.findFirst({
       where: { id: user.groupId, hallId },
-      select: { leader: { select: { username: true } } },
+      select: { leader: { select: NAME_SELECT } },
     });
-    sendTo = group?.leader ? displayLastName(group.leader.username) : "your CGL";
+    sendTo = group?.leader ? displayLastName(group.leader) : "your CGL";
   } else if (user.role === "LEADER") {
     sendTo = "your RS";
   }
@@ -74,7 +74,7 @@ export async function getPrayerData(user: ActiveUser): Promise<PrayerData> {
       const rows = await prisma.prayerRequest.findMany({
         where: { hallId, audience: "CGL", author: { groupId: { in: groupIds } } },
         orderBy: { createdAt: "desc" },
-        include: { author: { select: { username: true } } },
+        include: { author: { select: NAME_SELECT } },
       });
       received = toItems(rows);
     }
@@ -82,7 +82,7 @@ export async function getPrayerData(user: ActiveUser): Promise<PrayerData> {
     const rows = await prisma.prayerRequest.findMany({
       where: { hallId, audience: "RS" },
       orderBy: { createdAt: "desc" },
-      include: { author: { select: { username: true } } },
+      include: { author: { select: NAME_SELECT } },
     });
     received = toItems(rows);
   }
@@ -91,7 +91,7 @@ export async function getPrayerData(user: ActiveUser): Promise<PrayerData> {
   const sentRows = await prisma.prayerRequest.findMany({
     where: { hallId, authorId: user.id },
     orderBy: { createdAt: "desc" },
-    include: { author: { select: { username: true } } },
+    include: { author: { select: NAME_SELECT } },
   });
   const sent = toItems(sentRows);
 
@@ -132,7 +132,7 @@ export async function submitPrayerRequest(user: ActiveUser, body: string) {
     }
     await sendPushToUsers(recipientIds, {
       title: "New prayer request",
-      body: `${user.username} sent a prayer request.`,
+      body: `${displayName(user)} sent a prayer request.`,
       url: "/prayer",
     });
   } catch {

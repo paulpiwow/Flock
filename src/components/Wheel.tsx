@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 
-type Person = { id: string; username: string };
+type Person = { id: string; name: string };
 
 const R = 100;
 const CENTER = 105; // small margin for stroke
@@ -79,7 +79,7 @@ export function Wheel({ people }: { people: Person[] }) {
               const large = seg > 180 ? 1 : 0;
               const mid = -90 + (i + 0.5) * seg;
               const label = polar(mid, R * 0.62);
-              const first = p.username.split(/\s+/)[0];
+              const first = p.name.split(/\s+/)[0];
               return (
                 <g key={p.id}>
                   <path
@@ -121,7 +121,7 @@ export function Wheel({ people }: { people: Person[] }) {
 
       <div className="h-8 text-center">
         {winner && (
-          <p className="text-lg font-bold text-flock-800">🎉 {winner.username}</p>
+          <p className="text-lg font-bold text-flock-800">🎉 {winner.name}</p>
         )}
       </div>
     </div>

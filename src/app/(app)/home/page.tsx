@@ -4,6 +4,7 @@ import { HOME_TILES } from "@/lib/features";
 import { ROLE_LABEL, type Role } from "@/lib/roles";
 import { getSelfAttendance } from "@/lib/attendance";
 import { isCheckInOpen } from "@/lib/checkin";
+import { displayName } from "@/lib/names";
 import { FeatureGrid } from "@/components/FeatureGrid";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { NotificationsToggle } from "@/components/NotificationsToggle";
@@ -14,7 +15,8 @@ import { SignOutButton } from "@/components/SignOutButton";
 export default async function HomePage() {
   const user = await requireActiveUser();
   const role = user.role as Role;
-  const initial = user.username.charAt(0).toUpperCase();
+  const name = displayName(user);
+  const initial = name.charAt(0).toUpperCase();
 
   // Students self-check-in from Home — but only during the Wednesday-night
   // window (or if they've already been marked this week).
@@ -46,7 +48,7 @@ export default async function HomePage() {
         </div>
         <div>
           <h1 className="text-xl font-bold text-foreground">
-            {user.username}
+            {name}
           </h1>
           <p className="text-sm text-muted">{ROLE_LABEL[role]}</p>
         </div>
@@ -57,7 +59,11 @@ export default async function HomePage() {
         <SelfCheckInCard
           passageRef={selfAttendance.week.passageRef}
           groupName={selfAttendance.group?.name ?? null}
-          leaderName={selfAttendance.group?.leader?.username ?? null}
+          leaderName={
+            selfAttendance.group?.leader
+              ? displayName(selfAttendance.group.leader)
+              : null
+          }
           hasGroup={!!user.groupId}
           open={checkInOpen}
           selfReported={!!selfAttendance.record?.selfReportedAt}

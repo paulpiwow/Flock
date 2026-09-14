@@ -8,7 +8,7 @@ import {
 } from "@/lib/actions/groups";
 import { cn } from "@/lib/cn";
 
-type Student = { id: string; username: string };
+type Student = { id: string; name: string };
 type Group = {
   id: string;
   name: string;
@@ -85,7 +85,7 @@ export function DraftBoard({
                 className="flex items-center gap-1 rounded-full border border-flock-300 bg-flock-50 px-3 py-1.5 text-sm text-flock-800 transition-colors hover:bg-flock-100 disabled:opacity-50"
                 title={`Add to ${activeGroup?.name ?? ""}`}
               >
-                {s.username}
+                {s.name}
                 <Plus className="h-3.5 w-3.5" aria-hidden />
               </button>
             ))}
@@ -121,11 +121,11 @@ export function DraftBoard({
                 {g.members.map((m) => (
                   <li key={m.id}>
                     <span className="inline-flex items-center gap-1 rounded-full bg-flock-50 py-1 pl-2.5 pr-1 text-xs text-foreground">
-                      {m.username}
+                      {m.name}
                       <button
                         onClick={() => unassign(m.id)}
                         disabled={pending}
-                        aria-label={`Remove ${m.username}`}
+                        aria-label={`Remove ${m.name}`}
                         className="rounded-full p-0.5 text-muted hover:bg-absent/10 hover:text-absent"
                       >
                         <X className="h-3 w-3" aria-hidden />

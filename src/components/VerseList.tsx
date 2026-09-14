@@ -1,10 +1,11 @@
 import { Sparkles } from "lucide-react";
+import type { Named } from "@/lib/names";
 
 type Verse = {
   id: string;
   reference: string;
   text: string;
-  author?: { username: string } | null;
+  author?: Named | null;
 };
 
 export function VerseList({

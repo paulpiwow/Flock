@@ -8,12 +8,13 @@ import {
   type VerseState,
 } from "@/lib/actions/verses";
 import { cn } from "@/lib/cn";
+import type { Named } from "@/lib/names";
 
 type Verse = {
   id: string;
   reference: string;
   text: string;
-  author?: { username: string } | null;
+  author?: Named | null;
 };
 
 type AddAction = (prev: VerseState, formData: FormData) => Promise<VerseState>;

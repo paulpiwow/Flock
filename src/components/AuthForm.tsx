@@ -47,26 +47,6 @@ export function AuthForm({ initialError }: { initialError?: string }) {
       {isSignup && (
         <div>
           <label
-            htmlFor="username"
-            className="mb-1 block text-xs font-medium text-muted"
-          >
-            Username
-          </label>
-          <input
-            id="username"
-            name="username"
-            type="text"
-            autoComplete="username"
-            required
-            placeholder="e.g. will"
-            className="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-muted/60 focus:border-flock-600 focus:ring-2 focus:ring-flock-300"
-          />
-        </div>
-      )}
-
-      {isSignup && (
-        <div>
-          <label
             htmlFor="hallCode"
             className="mb-1 block text-xs font-medium text-muted"
           >

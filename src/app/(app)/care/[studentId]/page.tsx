@@ -3,6 +3,7 @@ import { requireActiveUser } from "@/lib/auth";
 import { getStudentCareNotes } from "@/lib/care";
 import { CareTimeline } from "@/components/CareTimeline";
 import { CareNoteForm } from "@/components/CareNoteForm";
+import { displayName } from "@/lib/names";
 
 export default async function StudentCarePage({
   params,
@@ -26,7 +27,7 @@ export default async function StudentCarePage({
   return (
     <section className="space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-flock-800">{student.username}</h1>
+        <h1 className="text-xl font-bold text-flock-800">{displayName(student)}</h1>
         <p className="text-sm text-muted">
           {notes.length} note{notes.length === 1 ? "" : "s"} this semester
         </p>
