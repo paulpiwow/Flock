@@ -1,8 +1,10 @@
+import { displayName, type Named } from "@/lib/names";
+
 type Note = {
   id: string;
   body: string;
   createdAt: Date;
-  author: { username: string } | null;
+  author: Named | null;
 };
 
 function fmtDate(d: Date) {
@@ -32,7 +34,7 @@ export function CareTimeline({ notes }: { notes: Note[] }) {
           <div className="mb-1 flex items-center justify-between gap-2">
             <span className="text-xs text-muted">
               {fmtDate(n.createdAt)}
-              {n.author ? ` · ${n.author.username}` : ""}
+              {n.author ? ` · ${displayName(n.author)}` : ""}
             </span>
           </div>
           <p className="whitespace-pre-wrap text-sm text-foreground">{n.body}</p>

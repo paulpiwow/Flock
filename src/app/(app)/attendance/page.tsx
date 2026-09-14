@@ -9,6 +9,7 @@ import {
 import { SelfCheckInCard } from "@/components/SelfCheckInCard";
 import { isCheckInOpen } from "@/lib/checkin";
 import { cn } from "@/lib/cn";
+import { displayName } from "@/lib/names";
 
 export default async function AttendancePage({
   searchParams,
@@ -30,7 +31,7 @@ export default async function AttendancePage({
           <SelfCheckInCard
             passageRef={week.passageRef}
             groupName={group?.name ?? null}
-            leaderName={group?.leader?.username ?? null}
+            leaderName={group?.leader ? displayName(group.leader) : null}
             hasGroup={!!user.groupId}
             open={isCheckInOpen()}
             selfReported={!!record?.selfReportedAt}
@@ -78,13 +79,13 @@ export default async function AttendancePage({
       <RosterBlock
         title="Did NOT attend"
         count={absent.length}
-        names={absent.map((m) => m.username)}
+        names={absent.map(displayName)}
         tone="absent"
       />
       <RosterBlock
         title="Attended"
         count={attended.length}
-        names={attended.map((m) => m.username)}
+        names={attended.map(displayName)}
         tone="present"
       />
 
@@ -149,9 +150,9 @@ function RosterBlock({
       {names.length === 0 ? (
         <p className="text-xs text-muted">None.</p>
       ) : (
-        <ul className="flex flex-wrap gap-x-4 gap-y-1">
+        <ul className="divide-y divide-border">
           {names.map((n) => (
-            <li key={n} className="text-sm text-foreground">
+            <li key={n} className="py-1.5 text-sm text-foreground">
               {n}
             </li>
           ))}

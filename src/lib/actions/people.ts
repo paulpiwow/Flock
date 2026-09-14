@@ -8,12 +8,41 @@ import {
   approveUser,
   removeUser,
   passwordResetLink,
+  renameUser,
 } from "@/lib/people";
 import { siteOrigin } from "@/lib/site";
+import { fullNameSchema } from "@/lib/names";
+
+export type RenameState = { error?: string; saved?: number };
+
+/** RS edits someone's first + last name. Shows everywhere the name appears. */
+export async function renameUserAction(
+  _prev: RenameState,
+  formData: FormData,
+): Promise<RenameState> {
+  const user = await requireActiveUser();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "Missing person." };
+  const parsed = fullNameSchema.safeParse({
+    firstName: formData.get("firstName"),
+    lastName: formData.get("lastName"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+  try {
+    await renameUser(user, id, parsed.data.firstName, parsed.data.lastName);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Couldn't save." };
+  }
+  // The name shows on every page (rosters, groups, notes, home), so refresh all.
+  revalidatePath("/", "layout");
+  return { saved: Date.now() };
+}
 
 export type ResetLinkState = {
   link?: string;
-  username?: string;
+  name?: string;
   error?: string;
 };
 

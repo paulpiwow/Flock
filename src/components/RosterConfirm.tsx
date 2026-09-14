@@ -10,7 +10,7 @@ import { cn } from "@/lib/cn";
 
 export type RosterItem = {
   id: string;
-  username: string;
+  name: string;
   selfReported: boolean;
   present: boolean; // pre-fill: confirmed-present or self-reported
 };
@@ -77,7 +77,7 @@ export function RosterConfirm({
                   {on && <Check className="h-4 w-4" aria-hidden />}
                 </span>
                 <span className="flex-1 text-sm text-foreground">
-                  {r.username}
+                  {r.name}
                 </span>
                 {r.selfReported && (
                   <span className="rounded-full bg-flock-100 px-2 py-0.5 text-[10px] font-medium text-flock-700">

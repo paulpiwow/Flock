@@ -3,6 +3,8 @@ import { ArrowDownRight, Check, Trash2, UserPlus, X } from "lucide-react";
 import { requireActiveUser } from "@/lib/auth";
 import { getPeople } from "@/lib/people";
 import { ResetLinkButton } from "@/components/ResetLinkButton";
+import { EditNameButton } from "@/components/EditNameButton";
+import { RowActions } from "@/components/RowActions";
 import {
   promoteToCglAction,
   demoteToStudentAction,
@@ -127,11 +129,14 @@ export default async function PeoplePage() {
           <h2 className="mb-2 text-sm font-semibold text-foreground">
             Pending approval ({pending.length})
           </h2>
-          <ul className="divide-y divide-border overflow-hidden rounded-card border border-flock-300 bg-surface">
+          <ul className="divide-y divide-border rounded-card border border-flock-300 bg-surface">
             {pending.map((p) => (
-              <Row key={p.id} name={p.username} subtitle={p.email}>
+              <Row key={p.id} name={p.name} subtitle={p.email}>
                 <Approve id={p.id} />
-                <Deny id={p.id} />
+                <RowActions label={p.name}>
+                  <EditNameButton {...p} />
+                  <Deny id={p.id} />
+                </RowActions>
               </Row>
             ))}
           </ul>
@@ -147,19 +152,22 @@ export default async function PeoplePage() {
         <h2 className="mb-2 text-sm font-semibold text-foreground">
           Resident Shepherds ({admins.length})
         </h2>
-        <ul className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
+        <ul className="divide-y divide-border rounded-card border border-border bg-surface">
           {admins.map((a) => (
             <Row
               key={a.id}
-              name={a.username}
+              name={a.name}
               subtitle={a.id === user.id ? "You" : "Resident Shepherd"}
             >
-              {a.id !== user.id && (
-                <>
-                  <ResetLinkButton id={a.id} />
-                  <Demote id={a.id} />
-                </>
-              )}
+              <RowActions label={a.name}>
+                <EditNameButton {...a} />
+                {a.id !== user.id && (
+                  <>
+                    <ResetLinkButton id={a.id} />
+                    <Demote id={a.id} />
+                  </>
+                )}
+              </RowActions>
             </Row>
           ))}
         </ul>
@@ -173,15 +181,18 @@ export default async function PeoplePage() {
         {cgls.length === 0 ? (
           <p className="text-sm text-muted">No CGLs yet.</p>
         ) : (
-          <ul className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
+          <ul className="divide-y divide-border rounded-card border border-border bg-surface">
             {cgls.map((c) => (
               <Row
                 key={c.id}
-                name={c.username}
+                name={c.name}
                 subtitle={c.groupName ?? "No group"}
               >
-                <ResetLinkButton id={c.id} />
-                <Demote id={c.id} />
+                <RowActions label={c.name}>
+                  <EditNameButton {...c} />
+                  <ResetLinkButton id={c.id} />
+                  <Demote id={c.id} />
+                </RowActions>
               </Row>
             ))}
           </ul>
@@ -193,24 +204,29 @@ export default async function PeoplePage() {
         <h2 className="mb-2 text-sm font-semibold text-foreground">
           Students ({students.length})
         </h2>
-        <ul className="divide-y divide-border overflow-hidden rounded-card border border-border bg-surface">
+        <ul className="divide-y divide-border rounded-card border border-border bg-surface">
           {students.map((s) => (
             <Row
               key={s.id}
-              name={s.username}
+              name={s.name}
               subtitle={s.groupName ?? "No group"}
             >
-              <ResetLinkButton id={s.id} />
-              <MakeCgl id={s.id} />
-              <Remove id={s.id} />
+              <RowActions label={s.name}>
+                <EditNameButton {...s} />
+                <ResetLinkButton id={s.id} />
+                <MakeCgl id={s.id} />
+                <Remove id={s.id} />
+              </RowActions>
             </Row>
           ))}
         </ul>
         <p className="mt-2 text-[11px] text-muted">
           Making a CGL creates a new group for them to lead — draft their guys
-          in with the Group Maker. <span className="font-medium">Reset</span>{" "}
-          makes a one-time password-reset link you can text to someone
-          who&apos;s locked out.
+          in with the Group Maker. Tap <span className="font-medium">⋯</span> on a
+          row for more: <span className="font-medium">Name</span> fixes how
+          someone shows up across Flock, and{" "}
+          <span className="font-medium">Reset</span> makes a one-time
+          password-reset link you can text to someone who&apos;s locked out.
         </p>
       </div>
     </section>

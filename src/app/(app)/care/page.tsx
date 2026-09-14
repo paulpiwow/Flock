@@ -7,7 +7,7 @@ import {
   getRecentCareNotes,
   getHallStudentsWithNotes,
 } from "@/lib/care";
-import { groupLabel } from "@/lib/names";
+import { displayName, groupLabel } from "@/lib/names";
 
 function fmtDate(d: Date | null) {
   if (!d) return "No notes yet";
@@ -31,7 +31,7 @@ export default async function CarePage() {
             Spiritual Summaries
           </h1>
           <p className="text-sm text-muted">
-            {group ? groupLabel(user.username) : "Your group"} · tap a guy to
+            {group ? groupLabel(user) : "Your group"} · tap a guy to
             add a note
           </p>
         </div>
@@ -44,7 +44,7 @@ export default async function CarePage() {
               >
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    {g.username}
+                    {g.name}
                   </p>
                   <p className="text-xs text-muted">
                     {g.noteCount} note{g.noteCount === 1 ? "" : "s"} · last{" "}
@@ -87,12 +87,12 @@ export default async function CarePage() {
                 >
                   <div className="mb-0.5 flex items-center justify-between gap-2">
                     <span className="text-sm font-medium text-foreground">
-                      {n.student.username}
+                      {displayName(n.student)}
                     </span>
                   </div>
                   <p className="line-clamp-2 text-xs text-muted">{n.body}</p>
                   <p className="mt-0.5 text-[11px] text-muted">
-                    {n.author?.username ?? "—"} ·{" "}
+                    {n.author ? displayName(n.author) : "—"} ·{" "}
                     {new Date(n.createdAt).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -117,7 +117,7 @@ export default async function CarePage() {
                 href={`/care/${s.id}`}
                 className="flex items-center justify-between px-4 py-2.5 active:bg-flock-50"
               >
-                <span className="text-sm text-foreground">{s.username}</span>
+                <span className="text-sm text-foreground">{displayName(s)}</span>
                 <span className="flex items-center gap-2 text-xs text-muted">
                   {s.noteCount} note{s.noteCount === 1 ? "" : "s"}
                   <ChevronRight className="h-4 w-4" aria-hidden />

@@ -72,6 +72,11 @@ model User {
   // yet). RSs (ADMIN) are exempt from the gate. This is the real membership gate
   // now that email confirmation is off.
   approvedAt DateTime?
+  // Real name, collected by the one-time "enter your first and last name"
+  // prompt (or set by an RS on the People page). Both null = not answered yet:
+  // the app layout blocks with a modal, and the UI falls back to `username`.
+  firstName String?
+  lastName  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

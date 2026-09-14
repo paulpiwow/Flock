@@ -76,7 +76,7 @@ export function ResetLinkButton({ id }: { id: string }) {
           )}
         >
           <KeyRound className="h-3.5 w-3.5" aria-hidden />
-          <span className="sr-only sm:not-sr-only">Reset</span>
+          Reset
         </button>
       </form>
 
@@ -99,7 +99,7 @@ export function ResetLinkButton({ id }: { id: string }) {
               >
                 {state.error
                   ? "Couldn't make a reset link"
-                  : `Reset link for ${state.username}`}
+                  : `Reset link for ${state.name}`}
               </h3>
               <button
                 type="button"

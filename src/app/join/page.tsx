@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth";
 import { JoinForm } from "@/components/JoinForm";
 import { SheepMark } from "@/components/SheepMark";
 import { SignOutButton } from "@/components/SignOutButton";
+import { displayName } from "@/lib/names";
 
 export default async function JoinPage() {
   const user = await requireUser(); // signed in (may be pending)
@@ -19,7 +20,7 @@ export default async function JoinPage() {
             Join your hall
           </h1>
           <p className="mt-2 text-sm text-muted">
-            Hey {user.username} — you&apos;re signed in, but not on a hall yet.
+            Hey {displayName(user)} — you&apos;re signed in, but not on a hall yet.
             Enter your hall&apos;s code to get started.
           </p>
         </div>

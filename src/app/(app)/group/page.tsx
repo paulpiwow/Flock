@@ -23,7 +23,7 @@ export default async function GroupPage() {
   }
 
   const { group, week, roster } = await getGroupRoster(user, led.id);
-  const label = groupLabel(group.leader?.username, group.name);
+  const label = groupLabel(group.leader, group.name);
 
   if (!week) {
     return (
@@ -36,7 +36,7 @@ export default async function GroupPage() {
 
   const items: RosterItem[] = roster.map((r) => ({
     id: r.id,
-    username: r.username,
+    name: r.name,
     selfReported: !!r.record?.selfReportedAt,
     present: r.record?.status === "PRESENT",
   }));

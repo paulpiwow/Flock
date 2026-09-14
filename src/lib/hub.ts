@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
 import { getCurrentWeek } from "@/lib/attendance";
-import { byLastName, groupLabel } from "@/lib/names";
+import { NAME_SELECT, byLastName, displayName, groupLabel } from "@/lib/names";
 
 /**
  * CGL Hub — everything a CGL is responsible for, derived from real data:
@@ -39,10 +39,10 @@ export async function getCglHub(user: ActiveUser) {
 
   const group = await prisma.group.findFirst({
     where: { hallId: user.hallId, leaderId: user.id },
-    include: { members: { select: { id: true, username: true } } },
+    include: { members: { select: { id: true, ...NAME_SELECT } } },
   });
   if (!group || !week) {
-    return { group, week, submitted: false, needNote: [] as { id: string; username: string }[] };
+    return { group, week, submitted: false, needNote: [] as { id: string; name: string }[] };
   }
 
   const memberIds = group.members.map((m) => m.id);
@@ -53,7 +53,8 @@ export async function getCglHub(user: ActiveUser) {
 
   const needNote = group.members
     .filter((m) => gaps.has(m.id))
-    .sort(byLastName);
+    .sort(byLastName)
+    .map((m) => ({ id: m.id, name: displayName(m) }));
 
   return { group, week, submitted, needNote };
 }
@@ -77,7 +78,7 @@ export async function getRsHubOverview(user: ActiveUser): Promise<CglStatus[]> {
     where: { hallId: user.hallId },
     orderBy: { name: "asc" },
     include: {
-      leader: { select: { username: true } },
+      leader: { select: NAME_SELECT },
       members: { select: { id: true } },
     },
   });
@@ -91,8 +92,8 @@ export async function getRsHubOverview(user: ActiveUser): Promise<CglStatus[]> {
     ]);
     out.push({
       groupId: g.id,
-      groupName: groupLabel(g.leader?.username, g.name),
-      leaderName: g.leader?.username ?? null,
+      groupName: groupLabel(g.leader, g.name),
+      leaderName: g.leader ? displayName(g.leader) : null,
       submitted,
       careGapCount: gaps.size,
       memberCount: memberIds.length,

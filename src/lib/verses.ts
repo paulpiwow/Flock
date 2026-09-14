@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
 import { sendPushToUsers } from "@/lib/push";
+import { NAME_SELECT } from "@/lib/names";
 
 /**
  * Memory verses, two tiers (hall-scoped, never interpreted):
@@ -26,7 +27,7 @@ export async function getLeaderVerses(user: ActiveUser) {
   return prisma.memoryVerse.findMany({
     where: { hallId: user.hallId, audience: "LEADERS" },
     orderBy: { createdAt: "desc" },
-    include: { author: { select: { username: true } } },
+    include: { author: { select: NAME_SELECT } },
   });
 }
 
@@ -49,7 +50,7 @@ export async function getGroupVerses(user: ActiveUser, groupId: string) {
   return prisma.memoryVerse.findMany({
     where: { hallId: user.hallId, groupId, audience: "GROUP" },
     orderBy: { createdAt: "desc" },
-    include: { author: { select: { username: true } } },
+    include: { author: { select: NAME_SELECT } },
   });
 }
 

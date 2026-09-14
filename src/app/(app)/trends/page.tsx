@@ -83,7 +83,7 @@ export default async function TrendsPage() {
                   href={`/care/${s.id}`}
                   className="flex items-center justify-between px-4 py-2.5 active:bg-flock-50"
                 >
-                  <span className="text-sm text-foreground">{s.username}</span>
+                  <span className="text-sm text-foreground">{s.name}</span>
                   <span className="text-xs text-muted">
                     {s.groupName ?? "No group"} ·{" "}
                     {s.lastSeenWeek

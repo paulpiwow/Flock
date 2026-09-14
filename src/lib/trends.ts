@@ -1,7 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
-import { byLastName, groupLabel } from "@/lib/names";
+import { NAME_SELECT, byLastName, displayName, groupLabel } from "@/lib/names";
 
 /**
  * Attendance Trends (RS only). Pure counts over time — no AI, no interpretation.
@@ -16,7 +16,7 @@ function assertAdmin(user: ActiveUser) {
 export type TrendsData = {
   weekly: { index: number; label: string; present: number; total: number; pct: number }[];
   groups: { id: string; name: string; present: number; total: number; pct: number }[];
-  needsAttention: { id: string; username: string; groupName: string | null; lastSeenWeek: number | null }[];
+  needsAttention: { id: string; name: string; groupName: string | null; lastSeenWeek: number | null }[];
   totalMembers: number;
 };
 
@@ -32,7 +32,7 @@ export async function getTrends(user: ActiveUser): Promise<TrendsData> {
     }),
     prisma.user.findMany({
       where: { hallId, role: "MEMBER", isActive: true },
-      select: { id: true, username: true, groupId: true },
+      select: { id: true, groupId: true, ...NAME_SELECT },
     }),
     prisma.group.findMany({
       where: { hallId },
@@ -40,7 +40,7 @@ export async function getTrends(user: ActiveUser): Promise<TrendsData> {
       select: {
         id: true,
         name: true,
-        leader: { select: { username: true } },
+        leader: { select: NAME_SELECT },
         _count: { select: { members: true } },
       },
     }),
@@ -86,7 +86,7 @@ export async function getTrends(user: ActiveUser): Promise<TrendsData> {
     const present = groupPresent.get(g.id) ?? 0;
     return {
       id: g.id,
-      name: groupLabel(g.leader?.username, g.name),
+      name: groupLabel(g.leader, g.name),
       present,
       total,
       pct: total ? Math.round((present / total) * 100) : 0,
@@ -107,13 +107,13 @@ export async function getTrends(user: ActiveUser): Promise<TrendsData> {
   const groupName = new Map(groups.map((g) => [g.id, g.name]));
   const needsAttention = members
     .filter((m) => !seenRecently.has(m.id))
+    .sort(byLastName)
     .map((m) => ({
       id: m.id,
-      username: m.username,
+      name: displayName(m),
       groupName: m.groupId ? (groupName.get(m.groupId) ?? null) : null,
       lastSeenWeek: lastSeen.get(m.id) ?? null,
-    }))
-    .sort(byLastName);
+    }));
 
   return { weekly, groups: groupsOut, needsAttention, totalMembers };
 }

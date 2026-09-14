@@ -1,7 +1,13 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import type { ActiveUser } from "@/lib/auth";
-import { byLastName, groupLabel } from "@/lib/names";
+import {
+  NAME_SELECT,
+  byLastName,
+  displayName,
+  groupLabel,
+  type Named,
+} from "@/lib/names";
 
 /**
  * Community Group Maker data layer. The RS runs the "draft": assigning each guy
@@ -21,8 +27,8 @@ export async function getDraftBoard(user: ActiveUser) {
       where: { hallId: user.hallId },
       orderBy: { name: "asc" },
       include: {
-        leader: { select: { username: true } },
-        members: { select: { id: true, username: true } },
+        leader: { select: NAME_SELECT },
+        members: { select: { id: true, ...NAME_SELECT } },
       },
     }),
     prisma.user.findMany({
@@ -32,18 +38,23 @@ export async function getDraftBoard(user: ActiveUser) {
         groupId: null,
         isActive: true,
       },
-      select: { id: true, username: true },
+      select: { id: true, ...NAME_SELECT },
     }),
   ]);
+
+  const toItem = (m: { id: string } & Named) => ({
+    id: m.id,
+    name: displayName(m),
+  });
 
   return {
     groups: groups.map((g) => ({
       id: g.id,
-      name: groupLabel(g.leader?.username, g.name),
-      leaderName: g.leader?.username ?? null,
-      members: [...g.members].sort(byLastName),
+      name: groupLabel(g.leader, g.name),
+      leaderName: g.leader ? displayName(g.leader) : null,
+      members: [...g.members].sort(byLastName).map(toItem),
     })),
-    pool: [...pool].sort(byLastName),
+    pool: [...pool].sort(byLastName).map(toItem),
   };
 }
 
@@ -85,7 +96,9 @@ export async function unassignStudent(user: ActiveUser, studentId: string) {
 export async function getHallCGLs(user: ActiveUser) {
   const leaders = await prisma.user.findMany({
     where: { hallId: user.hallId, role: "LEADER", isActive: true },
-    select: { id: true, username: true },
+    select: { id: true, ...NAME_SELECT },
   });
-  return [...leaders].sort(byLastName);
+  return [...leaders]
+    .sort(byLastName)
+    .map((l) => ({ id: l.id, name: displayName(l) }));
 }
